@@ -1,11 +1,55 @@
 use image::{GenericImageView, ImageResult, ImageBuffer, Rgba, RgbaImage, DynamicImage};
 
+// image loading
 fn load_image_from_filename(filename: &str) -> DynamicImage {
     // Load the image from the file (copilot)
     let img = image::open(filename).expect("File not found, sorry!");
     let (width, height) = img.dimensions();
     println!("Loaded {} ({}x{} px).", &filename, width, height);
     img
+}
+
+// resel conversion code
+#[derive(Debug, Clone, Copy, PartialEq)]
+enum Resel {
+    WireOrangeOff,   WireOrangeOn,
+    WireSapphireOff, WireSapphireOn,
+    WireLimeOff,     WireLimeOn,
+    AND,   XOR, 
+    Input, Output,
+    Empty
+}
+
+fn rgba_to_resel(r: u8, g: u8, b: u8, a: u8) -> Resel {
+    match (r, g, b, a) {
+        (128,  64,   0, 255) => Resel::WireOrangeOff,
+        (255, 128,   0, 255) => Resel::WireOrangeOn,
+        (  0,  64, 128, 255) => Resel::WireSapphireOff,
+        (  0, 128, 255, 255) => Resel::WireSapphireOn,
+        (64,  128,   0, 255) => Resel::WireLimeOff,
+        (128, 255,   0, 255) => Resel::WireLimeOn,
+        (  0, 128,  64, 255) => Resel::AND,
+        (  0, 255, 128, 255) => Resel::XOR,
+        ( 64,   0, 128, 255) => Resel::Input,
+        (128,   0, 255, 255) => Resel::Output,
+        _ => Resel::Empty,
+    }
+}
+
+fn resel_to_rgba(resel: Resel) -> Rgba<u8> {
+    match resel {
+        Resel::WireOrangeOff   => Rgba([128,  64,   0, 255]),
+        Resel::WireOrangeOn    => Rgba([255, 128,   0, 255]),
+        Resel::WireSapphireOff => Rgba([  0,  64, 128, 255]),
+        Resel::WireSapphireOn  => Rgba([  0, 128, 255, 255]),
+        Resel::WireLimeOff     => Rgba([64,  128,   0, 255]),
+        Resel::WireLimeOn      => Rgba([128, 255,   0, 255]),
+        Resel::AND             => Rgba([  0, 128,  64, 255]),
+        Resel::XOR             => Rgba([  0, 255, 128, 255]),
+        Resel::Input           => Rgba([ 64,   0, 128, 255]),
+        Resel::Output          => Rgba([128,   0, 255, 255]),
+        Resel::Empty           => Rgba([0, 0, 0, 0])
+    }
 }
 
 fn image_to_reselboard(img: &DynamicImage) -> Vec<Vec<Resel>> {
@@ -23,8 +67,11 @@ fn image_to_reselboard(img: &DynamicImage) -> Vec<Vec<Resel>> {
     // see https://stackoverflow.com/questions/59164456/
 }
 
+// compile to circuit elements
+
 //todo: resoascii_to_resoboard, resoboard_to_resoascii
 //todo: compile_resoboard
+
 /* todo: struct ResoCircuit
     // aux drawing data
     - pixels_by_region, region_by_pixel
@@ -45,6 +92,7 @@ fn image_to_reselboard(img: &DynamicImage) -> Vec<Vec<Resel>> {
 */
 //todo: rewrite with static allocs where possible
 
+// pixel_region_mapping_from_reselboard(reselboard, width, height) -> region_by_pixel, pixels_by_region
 fn pixel_region_mapping_from_reselboard(
     reselboard: &Vec<Vec<Resel>>,
     width: usize,
@@ -60,9 +108,6 @@ fn pixel_region_mapping_from_reselboard(
     // (
     // Wire nodes: Set as off by default, to "on" if we see one
 
-    // TODO FROM HERE:
-    // 1. refactor 'region_by_pixel' to 'region_by_pixel'
-    
     // For each pixel
     for x in 0..width {
         for y in 0..height {
@@ -136,53 +181,10 @@ fn pixel_region_mapping_from_reselboard(
     (region_by_pixel, pixels_by_region)
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-enum Resel {
-    WireOrangeOff,   WireOrangeOn,
-    WireSapphireOff, WireSapphireOn,
-    WireLimeOff,     WireLimeOn,
-    AND,   XOR, 
-    Input, Output,
-    Empty
-}
-
-fn rgba_to_resel(r: u8, g: u8, b: u8, a: u8) -> Resel {
-    match (r, g, b, a) {
-        (128,  64,   0, 255) => Resel::WireOrangeOff,
-        (255, 128,   0, 255) => Resel::WireOrangeOn,
-        (  0,  64, 128, 255) => Resel::WireSapphireOff,
-        (  0, 128, 255, 255) => Resel::WireSapphireOn,
-        (64,  128,   0, 255) => Resel::WireLimeOff,
-        (128, 255,   0, 255) => Resel::WireLimeOn,
-        (  0, 128,  64, 255) => Resel::AND,
-        (  0, 255, 128, 255) => Resel::XOR,
-        ( 64,   0, 128, 255) => Resel::Input,
-        (128,   0, 255, 255) => Resel::Output,
-        _ => Resel::Empty,
-    }
-}
-
-
-fn resel_to_rgba(resel: Resel) -> Rgba<u8> {
-    match resel {
-        Resel::WireOrangeOff   => Rgba([128,  64,   0, 255]),
-        Resel::WireOrangeOn    => Rgba([255, 128,   0, 255]),
-        Resel::WireSapphireOff => Rgba([  0,  64, 128, 255]),
-        Resel::WireSapphireOn  => Rgba([  0, 128, 255, 255]),
-        Resel::WireLimeOff     => Rgba([64,  128,   0, 255]),
-        Resel::WireLimeOn      => Rgba([128, 255,   0, 255]),
-        Resel::AND             => Rgba([  0, 128,  64, 255]),
-        Resel::XOR             => Rgba([  0, 255, 128, 255]),
-        Resel::Input           => Rgba([ 64,   0, 128, 255]),
-        Resel::Output          => Rgba([128,   0, 255, 255]),
-        Resel::Empty           => Rgba([0, 0, 0, 0])
-    }
-}
-
 fn main() {
     let img = load_image_from_filename("test.png");
     let (width, height) = img.dimensions();
     println!("{}x{}", width, height);
     println!("{:?}", image_to_reselboard(&img));
-    println!("{:?}", pixel_region_mapping_from_reselboard(&image_to_reselboard(&img), width as usize, height as usize));
+    //println!("{:?}", pixel_region_mapping_from_reselboard(&image_to_reselboard(&img), width as usize, height as usize));
 }

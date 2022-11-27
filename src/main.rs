@@ -25,17 +25,17 @@ fn image_to_reselboard(img: &DynamicImage) -> Vec<Vec<Resel>> {
 
 //todo: resoascii_to_resoboard, resoboard_to_resoascii
 
-fn get_reselboard_region_by_pixel(
-    reselboard: Vec<Vec<Resel>>,
-    width: &usize,
-    height: &usize,
+fn get_region_by_pixel_from_reselboard(
+    reselboard: &Vec<Vec<Resel>>,
+    width: usize,
+    height: usize,
 ) -> Vec<Vec<usize>> {
     let mut region_idx: usize = 0;
-    let mut visited:     Vec<Vec<bool>> = vec![vec![false; *height as usize]; *width as usize];
-    let mut region_idxs: Vec<Vec<usize>> = vec![vec![0; *height as usize]; *width as usize];
+    let mut visited:     Vec<Vec<bool>> = vec![vec![false; height as usize]; width as usize];
+    let mut region_idxs: Vec<Vec<usize>> = vec![vec![0; height as usize]; width as usize];
     
-    for x  in 0..*width {
-        for y in 0..*height {
+    for x in 0..width {
+        for y in 0..height {
             if visited[x][y] {
                 // already visited; skip
             } else {
@@ -46,46 +46,48 @@ fn get_reselboard_region_by_pixel(
                 // now, let's send out to explore our neighbors!
                 let mut neighbors: Vec<(usize, usize)> = Vec::new();
                 neighbors.push((x, y));
+
+                // for each neighbor...
                 while !neighbors.is_empty() {
                     let (x, y) = neighbors.pop().unwrap();
+                    // leave our mark
                     region_idxs[x][y] = region_idx;
                     visited[x][y] = true;
 
-
                     // Check contiguity
-                    for (dx, dy) in
+                    for (dx, dy) in {
                         if [
                             Resel::WireOrangeOff, Resel::WireOrangeOn,
                             Resel::WireSapphireOff, Resel::WireSapphireOn,
                             Resel::WireLimeOff, Resel::WireLimeOn
                         ].contains(&reselboard[x][y]) {
                             // Diagonal neighbors
-                            [(1,0), (1, *height), (0, *height), (*width, *height), (*width, 0), (*width, 1), (0, 1), (1,1)].iter()
+                            [(1,0), (1, height), (0, height), (width, height), (width, 0), (width, 1), (0, 1), (1,1)]
                         } else if [
                             Resel::AND, Resel::XOR, Resel::Input, Resel::Output
                         ].contains(&reselboard[x][y]) {
-                            // Ortho neighbors
-                            [(1,0), (0, *height), (*width, 0), (0, 1)].iter()
+                            // Ortho neighbors   --  cheap hack, pad with (0,0)s. (matched out of execution below)
+                            [(1,0), (0,height), (width, 0), (0, 1), (0,0), (0,0), (0,0), (0,0)]
                         } else {
                             // No neighbors
-                            [].iter()
+                            [(0,0), (0,0), (0,0), (0,0), (0,0), (0,0), (0,0), (0,0)]
                         }
-                    { // for (dx, dy) in ..neighbors to check.. {
-                        if !visited[x][y] {
+                    }.iter() { // for (dx, dy) in ..neighbors to check.. {
+                        if !visited[x][y] && !(dx == dy){
                             match (
-                                reselboard[x][y], // Our pixel
-                                reselboard[(x + dx) % width][(y + dy)%height] // Neighbor pixel
+                                &reselboard[x][y], // Our pixel
+                                &reselboard[(x + dx) % width][(y + dy)%height] // Neighbor pixel
                             ) {
                                 // Simple case, resels match, neighbor found!
                                 (resel_a, resel_b) if (resel_a == resel_b) => neighbors.push(
-                                    ((x + dx) % *width, (y + dy) % *height)
+                                    ((x + dx) % width, (y + dy)%height)
                                 ),       
                                 // Wires match
                                     (Resel::WireOrangeOff   | Resel::WireOrangeOn,   Resel::WireOrangeOff | Resel::WireOrangeOn)
                                 |   (Resel::WireSapphireOff | Resel::WireSapphireOn, Resel::WireSapphireOff | Resel::WireSapphireOn)
                                 |   (Resel::WireLimeOff     | Resel::WireLimeOn,     Resel::WireLimeOff | Resel::WireLimeOn)
                                 => neighbors.push(
-                                    ((x + dx) % *width, (y + dy) % *height)
+                                    ((x + dx) % width, (y + dy)%height)
                                 ),
                                 // Else, do nothing
                                 (_, _) => ()

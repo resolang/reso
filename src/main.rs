@@ -24,6 +24,26 @@ fn image_to_reselboard(img: &DynamicImage) -> Vec<Vec<Resel>> {
 }
 
 //todo: resoascii_to_resoboard, resoboard_to_resoascii
+//todo: compile_resoboard
+/* todo: struct ResoCircuit
+    // aux drawing data
+    - pixels_by_region, region_by_pixel
+
+    // compiled graph
+    - class_by_region
+    - wire_nodes, input_nodes, logic_nodes, output_nodes
+    - wires_to_inputs, inputs_to_logic, inputs_to_outputs, outputs_to_wires
+        ... sparse adjacency via hashmap? (custom hashmap region idx -> vec<region idx>?) we expect sparse indexing ints to ints
+        ... direct adjacency matrix? (num regions x num regions)?
+        ... sparse adjacency via vec? vec<vec<usize>>, mostly empty. e.g. [[], [], [], [3, 4], []] etc
+        ... Just use HashMap, probably, then revisit when I know more
+
+    // temp vars which change while running
+    - wire_state
+    - input_state
+    - output_state
+*/
+//todo: rewrite with static allocs where possible
 
 fn pixel_region_mapping_from_reselboard(
     reselboard: &Vec<Vec<Resel>>,
@@ -32,8 +52,16 @@ fn pixel_region_mapping_from_reselboard(
 ) -> (Vec<Vec<usize>>, Vec<Vec<(usize, usize)>>) {
     let mut region_idx: usize = 0;
     let mut visited:     Vec<Vec<bool>> = vec![vec![false; height as usize]; width as usize];
-    let mut region_idxs: Vec<Vec<usize>> = vec![vec![0; height as usize]; width as usize];
-    let mut pixels_by_region: Vec<Vec<(usize, usize)>> = vec![Vec::new()]; 
+    let mut region_by_pixel: Vec<Vec<usize>> = vec![vec![0; height as usize]; width as usize];
+    let mut pixels_by_region: Vec<Vec<(usize, usize)>> = vec![Vec::new()];
+
+    // todo: This can run class-by-region as well.
+    // (... And all the elements in the compilation step!)
+    // (
+    // Wire nodes: Set as off by default, to "on" if we see one
+
+    // TODO FROM HERE:
+    // 1. refactor 'region_by_pixel' to 'region_by_pixel'
     
     // For each pixel
     for x in 0..width {
@@ -56,7 +84,7 @@ fn pixel_region_mapping_from_reselboard(
                     let (x, y) = neighbors.pop().unwrap();
 
                     // Record info about the newly-inducted pixel to our region!
-                    region_idxs[x][y] = region_idx; // Mark this region on our map
+                    region_by_pixel[x][y] = region_idx; // Mark this region on our map
                     visited[x][y] = true; // Mark it as visited
                     // TODO
                     pixels_by_region[region_idx].push((x.clone(),y.clone())); // Remember this pixel belongs to this region
@@ -105,7 +133,7 @@ fn pixel_region_mapping_from_reselboard(
         }
     }
 
-    (region_idxs, pixels_by_region)
+    (region_by_pixel, pixels_by_region)
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

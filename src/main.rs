@@ -19,11 +19,89 @@ fn image_to_reselboard(img: &DynamicImage) -> Vec<Vec<Resel>> {
         }
     }
     reselboard
+    // TODO! This can be a fixed size array, I think.
+    // see https://stackoverflow.com/questions/59164456/
 }
 
 //todo: resoascii_to_resoboard, resoboard_to_resoascii
 
-#[derive(Debug, Clone, Copy)]
+fn get_reselboard_region_by_pixel(
+    reselboard: Vec<Vec<Resel>>,
+    width: usize,
+    height: usize,
+) -> Vec<Vec<usize>> {
+    let mut region_idx: usize = 0;
+    let mut visited:     Vec<Vec<bool>> = vec![vec![false; height as usize]; width as usize];
+    let mut region_idxs: Vec<Vec<usize>> = vec![vec![0; height as usize]; width as usize];
+    
+    for x  in 0..width {
+        for y in 0..height {
+            if visited[x][y] {
+                // already visited; skip
+            } else {
+                // unvisited!
+                // let's record this as the start of a new region!
+                region_idx += 1;
+
+                // now, let's send out to explore our neighbors!
+                let mut neighbors: Vec<(usize, usize)> = Vec::new();
+                neighbors.push((x, y));
+                while !neighbors.is_empty() {
+                    let (x, y) = neighbors.pop().unwrap();
+                    region_idxs[x][y] = region_idx;
+                    visited[x][y] = true;
+
+
+                    // Check contiguity
+                    for (dx, dy) in {
+                        // (dx,dy) are neighbors to check
+                        if [
+                            Resel::WireOrangeOff, Resel::WireOrangeOn,
+                            Resel::WireSapphireOff, Resel::WireSapphireOn,
+                            Resel::WireLimeOff, Resel::WireLimeOn
+                        ].contains(&reselboard[x][y]) {
+                            // Diagonal neighbors
+                            [(1,0), (1, height), (0, height), (width, height), (width, 0), (width, 1), (0, 1), (1,1)].iter()
+                        } else if [
+                            Resel::AND, Resel::XOR, Resel::Input, Resel::Output
+                        ].contains(&reselboard[x][y]) {
+                            // Ortho neighbors
+                            [(1,0), (0,height), (width, 0), (0, 1)].iter()
+                        } else {
+                            // No neighbors
+                            [].iter()
+                        }
+                    } { // for (dx, dy) in ..neighbors to check.. {
+                        if !visited[x][y] {
+                            match (
+                                reselboard[x][y], // Our pixel
+                                reselboard[(x + dx) % width][(y + dy)%height] // Neighbor pixel
+                            ) {
+                                // Simple case, resels match, neighbor found!
+                                (resel_a, resel_b) if (resel_a == resel_b) => neighbors.push(
+                                    ((x + dx) % width, (y + dy)%height)
+                                ),       
+                                // Wires match
+                                    (Resel::WireOrangeOff   | Resel::WireOrangeOn,   Resel::WireOrangeOff | Resel::WireOrangeOn)
+                                |   (Resel::WireSapphireOff | Resel::WireSapphireOn, Resel::WireSapphireOff | Resel::WireSapphireOn)
+                                |   (Resel::WireLimeOff     | Resel::WireLimeOn,     Resel::WireLimeOff | Resel::WireLimeOn)
+                                => neighbors.push(
+                                    ((x + dx) % width, (y + dy)%height)
+                                ),
+                                // Else, do nothing
+                                (_, _) => ()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    region_idxs
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 enum Resel {
     WireOrangeOff,   WireOrangeOn,
     WireSapphireOff, WireSapphireOn,

@@ -34,6 +34,7 @@ fn get_region_by_pixel_from_reselboard(
     let mut visited:     Vec<Vec<bool>> = vec![vec![false; height as usize]; width as usize];
     let mut region_idxs: Vec<Vec<usize>> = vec![vec![0; height as usize]; width as usize];
     
+    // todo -- combine for x,y into one loop?
     for x in 0..width {
         for y in 0..height {
             if visited[x][y] {
@@ -73,25 +74,24 @@ fn get_region_by_pixel_from_reselboard(
                             [(0,0), (0,0), (0,0), (0,0), (0,0), (0,0), (0,0), (0,0)]
                         }
                     }.iter() { // for (dx, dy) in ..neighbors to check.. {
-                        if !visited[x][y] && !(dx == dy){
-                            match (
-                                &reselboard[x][y], // Our pixel
-                                &reselboard[(x + dx) % width][(y + dy)%height] // Neighbor pixel
-                            ) {
-                                // Simple case, resels match, neighbor found!
-                                (resel_a, resel_b) if (resel_a == resel_b) => neighbors.push(
-                                    ((x + dx) % width, (y + dy)%height)
-                                ),       
-                                // Wires match
-                                    (Resel::WireOrangeOff   | Resel::WireOrangeOn,   Resel::WireOrangeOff | Resel::WireOrangeOn)
-                                |   (Resel::WireSapphireOff | Resel::WireSapphireOn, Resel::WireSapphireOff | Resel::WireSapphireOn)
-                                |   (Resel::WireLimeOff     | Resel::WireLimeOn,     Resel::WireLimeOff | Resel::WireLimeOn)
-                                => neighbors.push(
-                                    ((x + dx) % width, (y + dy)%height)
-                                ),
-                                // Else, do nothing
-                                (_, _) => ()
-                            }
+                        match (
+                            &reselboard[x][y], // Our pixel
+                            &reselboard[(x + dx) % width][(y + dy)%height] // Neighbor pixel
+                        ) {
+                            // Simple case, resels match, neighbor found!
+                            (resel_a, resel_b) if (resel_a == resel_b && dx != dy) => neighbors.push(
+                                ((x + dx) % width, (y + dy)%height)
+                            ),
+                            // Wires match
+                                (Resel::WireOrangeOff   | Resel::WireOrangeOn,   Resel::WireOrangeOff | Resel::WireOrangeOn)
+                            |   (Resel::WireSapphireOff | Resel::WireSapphireOn, Resel::WireSapphireOff | Resel::WireSapphireOn)
+                            |   (Resel::WireLimeOff     | Resel::WireLimeOn,     Resel::WireLimeOff | Resel::WireLimeOn)
+                            if dx != dy
+                            => neighbors.push(
+                                ((x + dx) % width, (y + dy)%height)
+                            ),
+                            // Else, do nothing
+                            (_, _) => ()
                         }
                     }
                 }

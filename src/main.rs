@@ -25,35 +25,41 @@ fn image_to_reselboard(img: &DynamicImage) -> Vec<Vec<Resel>> {
 
 //todo: resoascii_to_resoboard, resoboard_to_resoascii
 
-fn get_region_by_pixel_from_reselboard(
+fn pixel_region_mapping_from_reselboard(
     reselboard: &Vec<Vec<Resel>>,
     width: usize,
     height: usize,
-) -> Vec<Vec<usize>> {
+) -> (Vec<Vec<usize>>, Vec<Vec<(usize, usize)>>) {
     let mut region_idx: usize = 0;
     let mut visited:     Vec<Vec<bool>> = vec![vec![false; height as usize]; width as usize];
     let mut region_idxs: Vec<Vec<usize>> = vec![vec![0; height as usize]; width as usize];
+    let mut pixels_by_region: Vec<Vec<(usize, usize)>> = vec![Vec::new()]; 
     
-    // todo -- combine for x,y into one loop?
+    // For each pixel
     for x in 0..width {
         for y in 0..height {
             if visited[x][y] {
-                // already visited; skip
+                // Ignore it if already visited!
             } else {
-                // unvisited!
-                // let's record this as the start of a new region!
+                // Pixel is not visited -- this pixel marks a new region!
+                // First, update our region count, and prepare a new list of region pixels to populate
+                // (region_idx 0 is skipped intentionally, and pixels_by_region[0] should stay empty)
                 region_idx += 1;
+                pixels_by_region.push(Vec::new());
 
-                // now, let's send out to explore our neighbors!
+                // Now, let's explore this pixel and all of our neighbors one-by-one
                 let mut neighbors: Vec<(usize, usize)> = Vec::new();
                 neighbors.push((x, y));
 
-                // for each neighbor...
+                // For each neighbor, until we run out:
                 while !neighbors.is_empty() {
                     let (x, y) = neighbors.pop().unwrap();
-                    // leave our mark
-                    region_idxs[x][y] = region_idx;
-                    visited[x][y] = true;
+
+                    // Record info about the newly-inducted pixel to our region!
+                    region_idxs[x][y] = region_idx; // Mark this region on our map
+                    visited[x][y] = true; // Mark it as visited
+                    // TODO
+                    pixels_by_region[region_idx].push((x.clone(),y.clone())); // Remember this pixel belongs to this region
 
                     // Check contiguity
                     for (dx, dy) in {
@@ -99,7 +105,7 @@ fn get_region_by_pixel_from_reselboard(
         }
     }
 
-    region_idxs
+    (region_idxs, pixels_by_region)
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -150,4 +156,5 @@ fn main() {
     let (width, height) = img.dimensions();
     println!("{}x{}", width, height);
     println!("{:?}", image_to_reselboard(&img));
+    println!("{:?}", pixel_region_mapping_from_reselboard(&image_to_reselboard(&img), width as usize, height as usize));
 }

@@ -138,6 +138,10 @@ fn resel_region_mapping_from_reselboard(
         for y in 0..height {
             if visited[x][y] {
                 // Ignore it if already visited!
+            } else if reselboard[x][y] == Resel::Empty {
+                // Mark as visited, but don't count it as a region, since it is Empty
+                // (i.e. not a Resel)
+                visited[x][y] = true
             } else {
                 // Resel is not visited -- this resel marks a new region!
                 // First, update our region count, and prepare a new list of region resel to populate
@@ -149,7 +153,7 @@ fn resel_region_mapping_from_reselboard(
                 // Now, let's explore this resel, and all of our neighbors, one-by-one.
                 // (The starting resel counts as the first neighbor.)
                 let mut neighbors: Vec<(usize, usize)> = Vec::new();
-                // todo: Push and crawl (x,y) IFF (x,y) has a non-empty resel class
+                
                 neighbors.push((x, y));
 
                 // Explore neighboring contiguous resels.
@@ -163,7 +167,8 @@ fn resel_region_mapping_from_reselboard(
                     region_by_resel[x][y] = region_idx; // Mark this region on our map
                     visited[x][y] = true; // Mark this resel as visited
                     // TODO
-                    // (... what did I have set 'todo' here?) fix the clone?
+                    // (... what did I have set 'todo' here?) refactor to remove the clone?
+                    // this is an ugly nest of logic already...
                     resels_by_region[region_idx].push((x.clone(),y.clone()));
                     // Remember this resel belongs to this region
 

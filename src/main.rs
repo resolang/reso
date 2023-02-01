@@ -111,8 +111,8 @@ fn image_to_reselboard(img: &DynamicImage) -> Vec<Vec<Resel>> {
     - input_state
     - output_state
 */
-//todo: rewrite with static allocs where possible
 
+// todo: rename pixel_ to resel_. 
 // pixel_region_mapping_from_reselboard(reselboard, width, height) -> region_by_pixel, pixels_by_region
 fn pixel_region_mapping_from_reselboard(
     reselboard: &Vec<Vec<Resel>>,
@@ -121,12 +121,16 @@ fn pixel_region_mapping_from_reselboard(
 ) -> (Vec<Vec<usize>>, Vec<Vec<(usize, usize)>>) {
     let mut region_idx: usize = 0;
     let mut visited:     Vec<Vec<bool>> = vec![vec![false; height as usize]; width as usize];
+    // todo: visited is redundant, just check region_by_pixel? defaults to 9
     let mut region_by_pixel: Vec<Vec<usize>> = vec![vec![0; height as usize]; width as usize];
     let mut pixels_by_region: Vec<Vec<(usize, usize)>> = vec![Vec::new()];
 
+    // pixels_by_region[0] empty-- we index regions starting with 1.
+    // 'region_by_pixel[x][y] = 0' means [x][y] doesn't have a region assignment
+    pixels_by_region.push(Vec::new());
+
     // todo: This can run class-by-region as well.
     // (... And all the elements in the compilation step!)
-    // (
     // Wire nodes: Set as off by default, to "on" if we see one
 
     // For each pixel
@@ -137,26 +141,33 @@ fn pixel_region_mapping_from_reselboard(
             } else {
                 // Pixel is not visited -- this pixel marks a new region!
                 // First, update our region count, and prepare a new list of region pixels to populate
-                // (region_idx 0 is skipped intentionally, and pixels_by_region[0] should stay empty)
+                // (region_idx 0 is skipped intentionally, and pixels_by_region[0] should stay empty.)
+                // (on the first loop, region_idx == 1, and length of pixels_by_region.len() == 2)
                 region_idx += 1;
                 pixels_by_region.push(Vec::new());
 
-                // Now, let's explore this pixel and all of our neighbors one-by-one
+                // Now, let's explore this pixel, and all of our neighbors, one-by-one.
+                // (The starting pixel counts as the first neighbor.)
                 let mut neighbors: Vec<(usize, usize)> = Vec::new();
                 neighbors.push((x, y));
 
-                // For each neighbor, until we run out:
+                // Explore neighboring contiguous pixels.
+                // If a neighbor pixel is contiguous, add it to `neighbors`
                 while !neighbors.is_empty() {
                     let (x, y) = neighbors.pop().unwrap();
 
                     // Record info about the newly-inducted pixel to our region!
                     region_by_pixel[x][y] = region_idx; // Mark this region on our map
-                    visited[x][y] = true; // Mark it as visited
+                    visited[x][y] = true; // Mark this pixel as visited
                     // TODO
+                    // (... what did I have set 'todo' here?) fix the clone?
                     pixels_by_region[region_idx].push((x.clone(),y.clone())); // Remember this pixel belongs to this region
 
-                    // Check contiguity
+                    // Check contiguity.
                     for (dx, dy) in {
+                        // (dx,dy) = possible directions for adjacent pixels.
+                        // wires can be contiguous orthogonally and diagonally,
+                        // every other class can only be contiguous orthogonally.
                         if [
                             Resel::WireOrangeOff, Resel::WireOrangeOn,
                             Resel::WireSapphireOff, Resel::WireSapphireOn,
@@ -167,10 +178,10 @@ fn pixel_region_mapping_from_reselboard(
                         } else if [
                             Resel::AND, Resel::XOR, Resel::Input, Resel::Output
                         ].contains(&reselboard[x][y]) {
-                            // Ortho neighbors   --  cheap hack, pad with (0,0)s. (matched out of execution below)
+                            // Ortho neighbors   --  cheap hack, pad with (0,0)s.
                             [(1,0), (0,height), (width, 0), (0, 1), (0,0), (0,0), (0,0), (0,0)]
                         } else {
-                            // No neighbors
+                            // No neighbors. Should not be possible
                             [(0,0), (0,0), (0,0), (0,0), (0,0), (0,0), (0,0), (0,0)]
                         }
                     }.iter() { // for (dx, dy) in ..neighbors to check.. {
@@ -178,26 +189,40 @@ fn pixel_region_mapping_from_reselboard(
                             &reselboard[x][y], // Our pixel
                             &reselboard[(x + dx) % width][(y + dy)%height] // Neighbor pixel
                         ) {
-                            // Simple case, resels match, neighbor found!
+                            // Simple case where the resels match, add the pixel to our bag of neighbors
                             (resel_a, resel_b) if (resel_a == resel_b && dx != dy) => neighbors.push(
                                 ((x + dx) % width, (y + dy)%height)
                             ),
-                            // Wires match
-                                (Resel::WireOrangeOff   | Resel::WireOrangeOn,   Resel::WireOrangeOff | Resel::WireOrangeOn)
-                            |   (Resel::WireSapphireOff | Resel::WireSapphireOn, Resel::WireSapphireOff | Resel::WireSapphireOn)
-                            |   (Resel::WireLimeOff     | Resel::WireLimeOn,     Resel::WireLimeOff | Resel::WireLimeOn)
-                            if dx != dy
-                            => neighbors.push(
+                            // Wires match, but have different on/off values, add the pixel to our bag of neighbors
+                            (
+                                // e.g. current resel and adjacent resel are orange
+                                Resel::WireOrangeOff | Resel::WireOrangeOn,
+                                Resel::WireOrangeOff | Resel::WireOrangeOn
+                            ) | (
+                                // e.g. current resel and adjacent resel are sapphire
+                                Resel::WireSapphireOff | Resel::WireSapphireOn,
+                                Resel::WireSapphireOff | Resel::WireSapphireOn
+                            ) | (
+                                // e.g. current resel and adjacent resel are lime
+                                Resel::WireLimeOff | Resel::WireLimeOn,
+                                Resel::WireLimeOff | Resel::WireLimeOn
+                            ) if dx != dy => neighbors.push(
                                 ((x + dx) % width, (y + dy)%height)
                             ),
                             // Else, do nothing
                             (_, _) => ()
-                        }
-                    }
-                }
-            }
-        }
-    }
+                            // note: setting region_by_pixel and pixel_by_region
+                            // happens at the start of this while loop
+                      } // match expression to check contiguity;
+                        // if contiguous, add to 'neighbors'
+                    } // loop which checks adjacent resels for contiguity.
+                } // while loop which iterates over all neighbors in a region,
+                  // updating the region_by_pixel and pixels_by_region mappings.
+            } // consider resel.
+              // if in visited, ignore, look at the next resel.
+              // else, this is a new region, let's look for all adjacent pixels
+        } // for each y
+    } // for each x
 
     (region_by_pixel, pixels_by_region)
 }

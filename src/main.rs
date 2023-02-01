@@ -1,5 +1,15 @@
 use image::{GenericImageView, ImageResult, ImageBuffer, Rgba, RgbaImage, DynamicImage};
 
+/* Reso concepts
+ * 
+ * An image is a 2D array of pixels, each pixel has an RGBA color.
+ * 
+ * Meanwhile, a "reso circuit": 
+ *  - Has a reso-board, which is an ND array of resels, each resel has a resel class.
+ *  - Each resel belongs to a region.
+ *  - The graph of regions makes the circuit.
+ */
+
 // image loading
 fn load_image_from_filename(filename: &str) -> DynamicImage {
     // Load the image from the file (copilot)
@@ -10,16 +20,23 @@ fn load_image_from_filename(filename: &str) -> DynamicImage {
 }
 
 // resel conversion code
+// enum of resel classes
 #[derive(Debug, Clone, Copy, PartialEq)]
 enum Resel {
-    WireOrangeOff,   WireOrangeOn,
-    WireSapphireOff, WireSapphireOn,
-    WireLimeOff,     WireLimeOn,
-    AND,   XOR, 
-    Input, Output,
+    WireOrangeOff,
+    WireOrangeOn,
+    WireSapphireOff,
+    WireSapphireOn,
+    WireLimeOff,
+    WireLimeOn,
+    AND,
+    XOR, 
+    Input,
+    Output,
     Empty
 }
 
+// Map pixel color to resel class
 fn rgba_to_resel(r: u8, g: u8, b: u8, a: u8) -> Resel {
     match (r, g, b, a) {
         (128,  64,   0, 255) => Resel::WireOrangeOff,
@@ -36,6 +53,7 @@ fn rgba_to_resel(r: u8, g: u8, b: u8, a: u8) -> Resel {
     }
 }
 
+// Map of resel class to pixel color
 fn resel_to_rgba(resel: Resel) -> Rgba<u8> {
     match resel {
         Resel::WireOrangeOff   => Rgba([128,  64,   0, 255]),
@@ -52,6 +70,8 @@ fn resel_to_rgba(resel: Resel) -> Rgba<u8> {
     }
 }
 
+// Map an rgba image to a 2D grid of Resels.
+// (img: &DynamicImage means `img` is a *reference* to a `DynamicImage)
 fn image_to_reselboard(img: &DynamicImage) -> Vec<Vec<Resel>> {
     let (width, height) = img.dimensions();
     let mut reselboard = vec![vec![Resel::Empty; height as usize]; width as usize];
@@ -63,13 +83,14 @@ fn image_to_reselboard(img: &DynamicImage) -> Vec<Vec<Resel>> {
         }
     }
     reselboard
-    // TODO! This can be a fixed size array, I think.
+    // TODO! This can be a fixed size array, I think?
     // see https://stackoverflow.com/questions/59164456/
 }
 
 // compile to circuit elements
 
-//todo: resoascii_to_resoboard, resoboard_to_resoascii
+//todo: ascii_to_resel, resel_to_ascii, resoascii_to_resoboard, resoboard_to_resoascii
+
 //todo: compile_resoboard
 
 /* todo: struct ResoCircuit

@@ -149,6 +149,7 @@ fn resel_region_mapping_from_reselboard(
                 // Now, let's explore this resel, and all of our neighbors, one-by-one.
                 // (The starting resel counts as the first neighbor.)
                 let mut neighbors: Vec<(usize, usize)> = Vec::new();
+                // todo: Push and crawl (x,y) IFF (x,y) has a non-empty resel class
                 neighbors.push((x, y));
 
                 // Explore neighboring contiguous resels.
@@ -194,7 +195,10 @@ fn resel_region_mapping_from_reselboard(
                             &reselboard[(x + dx) % width][(y + dy)%height] // Neighbor resel
                         ) {
                             // Simple case where the resels match, add the resel to our bag of neighbors
-                            (resel_a, resel_b) if (resel_a == resel_b && *dx != 0 && *dy != 0 && !visited[x][y]) => {
+                            (resel_a, resel_b) if (
+                                // resel_a matches resel_b, not the originating pixel, and not already visited
+                                resel_a == resel_b && *dx != 0 && *dy != 0 && !visited[(x + dx) % width][(y + dy)%height]
+                            ) => {
                                 neighbors.push(
                                     ((x + dx) % width, (y + dy)%height)
                                 );
@@ -213,7 +217,8 @@ fn resel_region_mapping_from_reselboard(
                                 // e.g. current resel and adjacent resel are lime
                                 Resel::WireLimeOff | Resel::WireLimeOn,
                                 Resel::WireLimeOff | Resel::WireLimeOn
-                            ) if (*dx != 0 && *dy != 0 && !visited[x][y]) => {
+                            // ..., not the originating pixel, and not already visited
+                            ) if (*dx != 0 && *dy != 0 && !visited[(x + dx) % width][(y + dy)%height]) => {
                                 neighbors.push(
                                     ((x + dx) % width, (y+ dy)%height)
                                 );

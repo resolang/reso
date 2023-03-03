@@ -1,11 +1,8 @@
 use std::collections::HashMap;
 use image::{GenericImageView, ImageResult, ImageBuffer, Rgba, RgbaImage, DynamicImage};
 
-
 /// Return image::DynamicImage given filename
 fn load_image_from_filename(filename: &str) -> DynamicImage {
-  // todo -- should be String and not &str?
-  // Load the image from the file (copilot)
   let img = image::open(filename).expect("File not found, sorry!");
   let (width, height) = img.dimensions();
   println!("Loaded {} ({}x{} px).", &filename, width, height);
@@ -79,8 +76,6 @@ fn image_to_reselboard(img: &DynamicImage) -> Vec<Vec<Resel>> {
     }
   }
   reselboard
-  // TODO! This can be a fixed size array, I think?
-  // see https://stackoverflow.com/questions/59164456/
 }
 
 /// Unusued; for text-based reselboard.
@@ -118,20 +113,17 @@ fn resel_to_ascii(resel: Resel) -> char {
   }
 }
 
-
-// TODO: If an on and off wire are adjacent, set all as 'on'
-
 /// Given a reselboard, find and index regions of adjacent elements.
 /// Returns tuple (region_by_resel[x][y]->i, resels_by_region[i]->[(x,y), ...])
 fn resel_region_mapping_from_reselboard(
-  reselboard: &Vec<Vec<Resel>>,
-  width: usize,
-  height: usize,
+  reselboard: &Vec<Vec<Resel>>
 ) -> (Vec<Vec<usize>>, Vec<Vec<(usize, usize)>>) {
+  // possible runtime error if called with empty reselboard,
+  // or reselboard with a column that is too short
+  let (width, height) = (reselboard.len(), reselboard[0].len());
 
   let mut region_idx: usize = 0;
-  let mut visited:   Vec<Vec<bool>> = vec![vec![false; height as usize]; width as usize];
-  // todo: visited is redundant, just check region_by_resel? defaults to 0
+  let mut visited:  Vec<Vec<bool>> = vec![vec![false; height as usize]; width as usize];
   let mut region_by_resel: Vec<Vec<usize>> = vec![vec![0; height as usize]; width as usize];
   let mut resels_by_region: Vec<Vec<(usize, usize)>> = vec![Vec::new()];
 
@@ -280,38 +272,60 @@ fn class_indices_from_reselboard_and_regions(
   (class_by_region, wire_nodes, input_nodes, output_nodes, logic_nodes)
 }
 
+// copilot generated, but wow
+// todo lynn! current plan:
+//  - Function to get adjacent region indices from a region
+//  - Use that to populate input_to_wire, etc. five vars
+fn get_adjacent_region_idxs(
+  region_idx: usize,
+  region_by_resel: &Vec<Vec<usize>>,
+  resels_by_region: &Vec<Vec<(usize, usize)>>,
+) -> Vec<usize> {
+  let mut adjacent_regions = Vec::new();
+  for (x, y) in resels_by_region[region_idx].iter() {
+    // todo from here: copy my work above, checking neighbors depending on resel class
+    for (dx, dy) in vec![(1,0), (0,1), (-1,0), (0,-1)].iter() {
+      let neighbor_region = region_by_resel[(x + dx) % region_by_resel.len()][(y + dy) % region_by_resel[0].len()];
+      if neighbor_region != region_idx {
+        adjacent_regions.push(neighbor_region);
+      }
+    }
+  }
+  adjacent_regions
+}
+
 
 #[derive(Debug, Clone)]
 struct ResoCircuit {
   // aux drawing data
-  image: image::DynamicImage,
-  reselboard: Vec<Vec<Resel>>,
-  region_by_resel: Vec<Vec<usize>>,
+  image:            image::DynamicImage,
+  reselboard:       Vec<Vec<Resel>>,
+  region_by_resel:  Vec<Vec<usize>>,
   resels_by_region: Vec<Vec<(usize, usize)>>,
 
   // index regions by resel class
   // in addition to region index, this also maintains a dense index for wire, io, logic
   // (e.g. region 7 might be wire 3, so wire_nodes[3] == 7)
   class_by_region: Vec<Resel>, // length == number of total regions
-  wire_nodes: Vec<usize>,    // length == number of wire regions
-  input_nodes: Vec<usize>,   // 
-  output_nodes: Vec<usize>,
-  logic_nodes: Vec<usize>,
+  wire_nodes:      Vec<usize>, // length == number of wire regions
+  input_nodes:     Vec<usize>,
+  output_nodes:    Vec<usize>,
+  logic_nodes:     Vec<usize>,
 
   // connectivity data between classes
   // uses the dense indices for wire_nodes, input_nodes, etc. above
   // (e.g. we might have input_nodes[4] == 8, and input_to_wire[4] == [3,]
   //  which means region 8 is input 4, and has incident wire 3, which is region 7)
   // (But you can ignore region index here, since we dense per-class indices.
-  input_to_wire: Vec<Vec<usize>>,  // input_idx -> wire_idx. (input nodes poll incident wires)
-  input_to_logic: Vec<Vec<usize>>,
+  input_to_wire:   Vec<Vec<usize>>,  // input_idx -> wire_idx. (input nodes poll incident wires)
+  input_to_logic:  Vec<Vec<usize>>,
   input_to_output: Vec<Vec<usize>>,
   logic_to_output: Vec<Vec<usize>>,
-  output_to_wire: Vec<Vec<usize>>,
+  output_to_wire:  Vec<Vec<usize>>,
   
   // temporary state data used at runtime
-  wire_state: Vec<bool>, // length == number of wire regions
-  logic_state: Vec<bool>,
+  wire_state:   Vec<bool>, // length == number of wire regions
+  logic_state:  Vec<bool>,
   output_state: Vec<bool>,
 }
 
@@ -358,6 +372,8 @@ fn compile_reso_circuit_from_image(img: &image::DynamicImage) -> ResoCircuit {
 // 5. Serialization, etc?
 impl ResoCircuit {
 
+
+
   //fn from_reselboard(&self, reselboard: &Vec<Vec<Resel>) -> Self {
   //  let (width, height) = (reselboard.len(), reselboard[0].len());
   //}
@@ -382,7 +398,7 @@ fn main() {
   println!("Dimensions: {}x{}", width, height);
   println!("Reselboard: {:?}", image_to_reselboard(&img));
   let (region_by_resel, resels_by_region) = 
-    resel_region_mapping_from_reselboard(&image_to_reselboard(&img), width as usize, height as usize);
+    resel_region_mapping_from_reselboard(&image_to_reselboard(&img));
   println!("Region by resel:\n{:?}", region_by_resel);
   println!("Resel by region:\n{:?}", resels_by_region);
 
@@ -399,4 +415,3 @@ fn main() {
   println!("Logic nodes:\n{:?}", logic_nodes);
 
 }
-

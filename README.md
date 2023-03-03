@@ -5,6 +5,15 @@ WIP!
 See https://gitlab.com/resolang/reso (originally at https://gitlab.com/lynnpepin/reso).
 
 
+---
+
+TODOs:
+
+- [ ] Start working on ResoCircuit
+  - [ ] Instantiate by filepath, by image, or by reselboard
+  - [ ] Populate region and node indices
+  - [ ] Create the code which crear
+
 --- 
 
 Scrap notes!

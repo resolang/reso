@@ -1,17 +1,21 @@
+use std::collections::HashMap;
 use image::{GenericImageView, ImageResult, ImageBuffer, Rgba, RgbaImage, DynamicImage};
 
 /* Reso concepts
  * 
  * An image is a 2D array of pixels, each pixel has an RGBA color.
  * 
- * Meanwhile, a "reso circuit": 
- *  - Has a reso-board, which is an ND array of resels, each resel has a resel class.
- *  - Each resel belongs to a region.
- *  - The graph of regions makes the circuit.
+ * Meanwhile, a 2D "reso circuit": 
+ *  - Has a reso-board: a 2D array of resels.
+ *  - Resel: Pixel equivalent. Each resel has a resel class and belongs to a region.
+ *  - Region: The minimum logical element.
+ *            (Wires, input, logic, output, etc. are all composed of regions of one or more resel.)
+ *  - The graph of connected regions makes the circuit.
  */
 
-// image loading
+/// Return image::DynamicImage given filename
 fn load_image_from_filename(filename: &str) -> DynamicImage {
+    // todo -- should be String and not &str?
     // Load the image from the file (copilot)
     let img = image::open(filename).expect("File not found, sorry!");
     let (width, height) = img.dimensions();
@@ -19,8 +23,7 @@ fn load_image_from_filename(filename: &str) -> DynamicImage {
     img
 }
 
-// resel conversion code
-// enum of resel classes
+/// Enum of all the classes a resel can have
 #[derive(Debug, Clone, Copy, PartialEq)]
 enum Resel {
     WireOrangeOff,
@@ -36,8 +39,10 @@ enum Resel {
     Empty
 }
 
-// Map pixel color to resel class
-fn rgba_to_resel(r: u8, g: u8, b: u8, a: u8) -> Resel {
+/// Mapping of individual RGBA values to Resel class.
+/// Also see: resel_to_rgba(resel: Resel) -> image::Rgba<u8>
+/// Not to be confused with rgba_to_resel
+fn rgbas_to_resel(r: u8, g: u8, b: u8, a: u8) -> Resel {
     match (r, g, b, a) {
         (128,  64,   0, 255) => Resel::WireOrangeOff,
         (255, 128,   0, 255) => Resel::WireOrangeOn,
@@ -53,7 +58,15 @@ fn rgba_to_resel(r: u8, g: u8, b: u8, a: u8) -> Resel {
     }
 }
 
-// Map of resel class to pixel color
+/// Mapping of image::Rgba<u8> to Resel class.
+/// Also see: resel_to_rgba(resel: Resel) -> image::Rgba<u8>
+/// Not to be confused with rgbas_to_resel
+fn rgba_to_resel(pixel: Rgba<u8>) -> Resel {
+    rgbas_to_resel(pixel[0], pixel[1], pixel[2], pixel[3])
+}
+
+/// Mapping of Resel class to RGBA value.
+/// Also see: rgba_to_resel(r: u8, g: u8, b: u8, a: u8) -> Resel
 fn resel_to_rgba(resel: Resel) -> Rgba<u8> {
     match resel {
         Resel::WireOrangeOff   => Rgba([128,  64,   0, 255]),
@@ -78,7 +91,7 @@ fn image_to_reselboard(img: &DynamicImage) -> Vec<Vec<Resel>> {
     for x in 0..width {
         for y in 0..height {
             let pixel = img.get_pixel(x, y);
-            let resel = rgba_to_resel(pixel[0], pixel[1], pixel[2], pixel[3]);
+            let resel = rgba_to_resel(pixel);
             reselboard[x as usize][y as usize] = resel;
         }
     }

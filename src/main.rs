@@ -272,7 +272,6 @@ fn class_indices_from_reselboard_and_regions(
   (class_by_region, wire_nodes, input_nodes, output_nodes, logic_nodes)
 }
 
-// copilot generated, but wow
 // todo lynn! current plan:
 //  - Function to get adjacent region indices from a region
 //  - Use that to populate input_to_wire, etc. five vars
@@ -282,11 +281,18 @@ fn get_adjacent_region_idxs(
   resels_by_region: &Vec<Vec<(usize, usize)>>,
 ) -> Vec<usize> {
   let mut adjacent_regions = Vec::new();
+  // warning: possibility of runtime error if called on non-grid VecVec
+  let (width, height) = (region_by_resel.len(), region_by_resel[0].len());
+
   for (x, y) in resels_by_region[region_idx].iter() {
-    // todo from here: copy my work above, checking neighbors depending on resel class
-    for (dx, dy) in vec![(1,0), (0,1), (-1,0), (0,-1)].iter() {
-      let neighbor_region = region_by_resel[(x + dx) % region_by_resel.len()][(y + dy) % region_by_resel[0].len()];
-      if neighbor_region != region_idx {
+    // Adjacent regions are only adjacent by orthogonal
+    for &(dx, dy) in vec![(1,0), (0,1), (width-1,0), (0,height-1)].iter() {
+      let (neighbor_x, neighbor_y) = ((x + dx) % width, (y + dy) % height);
+
+
+      let neighbor_region = region_by_resel[neighbor_x][neighbor_y];
+      // check neighbor region is not the same, and not already in the list
+      if neighbor_region != region_idx && !adjacent_regions.contains(&neighbor_region){
         adjacent_regions.push(neighbor_region);
       }
     }
@@ -371,6 +377,48 @@ fn compile_reso_circuit_from_image(img: &image::DynamicImage) -> ResoCircuit {
 // 4. Iteration loop. (see readme)
 // 5. Serialization, etc?
 impl ResoCircuit {
+  fn from_image(img: &DynamicImage) -> Self {
+    let reselboard = image_to_reselboard(img);
+    let (width, height) = (reselboard.len(), reselboard[0].len());
+
+    let (region_by_resel, resels_by_region) = resel_region_mapping_from_reselboard(
+      &reselboard, width, height
+    );
+
+    let class_by_region = vec![Resel::Empty; 0];
+    let wire_nodes = vec![0; 0];
+    let input_nodes = vec![0; 0];
+    let output_nodes = vec![0; 0];
+    let logic_nodes = vec![0; 0];
+    let input_to_wire = vec![vec![0; 0]; 0];
+    let input_to_logic = vec![vec![0; 0]; 0];
+    let input_to_output = vec![vec![0; 0]; 0];
+    let logic_to_output = vec![vec![0; 0]; 0];
+    let output_to_wire = vec![vec![0; 0]; 0];
+    let wire_state = vec![false; 0];
+    let logic_state = vec![false; 0];
+    let output_state = vec![false; 0];
+
+    ResoCircuit {
+      image: img.clone(),
+      reselboard: reselboard,
+      region_by_resel: region_by_resel,
+      resels_by_region: resels_by_region,
+      class_by_region: class_by_region,
+      wire_nodes: wire_nodes,
+      input_nodes: input_nodes,
+      output_nodes: output_nodes,
+      logic_nodes: logic_nodes,
+      input_to_wire: input_to_wire,
+      input_to_logic: input_to_logic,
+      input_to_output: input_to_output,
+      logic_to_output: logic_to_output,
+      output_to_wire: output_to_wire,
+      wire_state: wire_state,
+      logic_state: logic_state,
+      output_state: output_state,
+    }
+  }
 
 
 
@@ -413,5 +461,17 @@ fn main() {
   println!("Input nodes:\n{:?}", input_nodes);
   println!("Output nodes:\n{:?}", output_nodes);
   println!("Logic nodes:\n{:?}", logic_nodes);
+
+  // for each region, print adjacent regions
+  for (region_idx, region) in resels_by_region.iter().enumerate() {
+    println!("Region {} has {} resels", region_idx, region.len());
+    println!("  Adjacent regions: {:?}", get_adjacent_region_idxs(
+      region_idx, &region_by_resel, &resels_by_region
+    ));
+    // also print enum of adjacent region idxs
+    println!("  Adjacent regions: {:?}", get_adjacent_region_idxs(
+      region_idx, &region_by_resel, &resels_by_region
+    ).iter().map(|&idx| class_by_region[idx]).collect::<Vec<Resel>>());
+  }
 
 }

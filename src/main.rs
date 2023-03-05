@@ -285,13 +285,11 @@ struct ResoCircuit {
     logic_to_output: Vec<Vec<usize>>,
     output_to_wire: Vec<Vec<usize>>,
     
-
     // temporary state data used at runtime
     wire_state: Vec<bool>, // length == number of wire regions
     logic_state: Vec<bool>,
     output_state: Vec<bool>,
 }
-
 
 fn main() {
     let img = load_image_from_filename("test.png");

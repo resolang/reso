@@ -255,40 +255,46 @@ fn resel_region_mapping_from_reselboard(
     (region_by_resel, resels_by_region)
 }
 
+/// Given a resoboard and the mapping between regions and resels,
+/// get the resel class at each region, plus dense class indices.
+/// (The dense class indices are used when running.)
+fn class_indices_from_resoboard_and_regions(
+    resoboard: &Vec<Vec<Resel>>,
+    region_by_resel: &Vec<Vec<usize>>,
+    resels_by_region: &Vec<Vec<(usize, usize)>>,
+) -> (Vec<Resel>, Vec<usize>, Vec<usize>, Vec<usize>, Vec<usize>) {
+    let mut class_by_region = vec![Resel::Empty; resels_by_region.len()];
+    let mut wire_nodes = Vec::new();
+    let mut input_nodes = Vec::new();
+    let mut output_nodes = Vec::new();
+    let mut logic_nodes = Vec::new();
 
+    for (region_idx, resels) in resels_by_region.iter().enumerate() {
+        // get resel_class from the first pixel in the region
+        let resel_class = resoboard[resels[0].0][resels[0].1];
+        
+        // Update our values
+        class_by_region[region_idx] = resel_class.clone();
+        match resel_class {
+            Resel::WireOrangeOff | Resel::WireOrangeOn |
+            Resel::WireSapphireOff | Resel::WireSapphireOn |
+            Resel::WireLimeOff | Resel::WireLimeOn => {
+                wire_nodes.push(region_idx);
+            },
+            Resel::Input => {
+                input_nodes.push(region_idx);
+            },
+            Resel::Output => {
+                output_nodes.push(region_idx);
+            },
+            Resel::AND | Resel::XOR => {
+                logic_nodes.push(region_idx);
+            },
+            _ => {}
+        }
+    }
 
-#[derive(Debug, Clone)]
-struct ResoCircuit {
-    // aux drawing data
-    original_image: image::DynamicImage,
-    reselboard: Vec<Vec<Resel>>,
-    region_by_resel: Vec<Vec<usize>>,
-    resels_by_region: Vec<Vec<(usize, usize)>>,
-
-    // index regions by resel class
-    // in addition to region index, this also maintains a dense index for wire, io, logic
-    // (e.g. region 7 might be wire 3, so wire_nodes[3] == 7)
-    class_by_region: Vec<Resel>, // length == number of total regions
-    wire_nodes: Vec<usize>,      // length == number of wire regions
-    input_nodes: Vec<usize>,     // 
-    output_nodes: Vec<usize>,
-    logic_nodes: Vec<usize>,
-
-    // connectivity data between classes
-    // uses the dense indices for wire_nodes, input_nodes, etc. above
-    // (e.g. we might have input_nodes[4] == 8, and input_to_wire[4] == [3,]
-    //  which means region 8 is input 4, and has incident wire 3, which is region 7)
-    // (But you can ignore region index here, since we dense per-class indices.
-    input_to_wire: Vec<Vec<usize>>,  // input_idx -> wire_idx. (input nodes poll incident wires)
-    input_to_logic: Vec<Vec<usize>>,
-    input_to_output: Vec<Vec<usize>>,
-    logic_to_output: Vec<Vec<usize>>,
-    output_to_wire: Vec<Vec<usize>>,
-    
-    // temporary state data used at runtime
-    wire_state: Vec<bool>, // length == number of wire regions
-    logic_state: Vec<bool>,
-    output_state: Vec<bool>,
+    (class_by_region, wire_nodes, input_nodes, output_nodes, logic_nodes)
 }
 
 fn main() {
@@ -300,5 +306,18 @@ fn main() {
         resel_region_mapping_from_reselboard(&image_to_reselboard(&img), width as usize, height as usize);
     println!("Region by resel:\n{:?}", region_by_resel);
     println!("Resel by region:\n{:?}", resels_by_region);
+
+    let (class_by_region, wire_nodes, input_nodes, output_nodes, logic_nodes) = 
+        class_indices_from_resoboard_and_regions(
+            &image_to_reselboard(&img),
+            &region_by_resel,
+            &resels_by_region,
+        );
+    println!("Class by region:\n{:?}", class_by_region);
+    println!("Wire nodes:\n{:?}", wire_nodes);
+    println!("Input nodes:\n{:?}", input_nodes);
+    println!("Output nodes:\n{:?}", output_nodes);
+    println!("Logic nodes:\n{:?}", logic_nodes);
+
 }
 

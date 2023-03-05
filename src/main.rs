@@ -118,6 +118,11 @@ fn resel_to_ascii(resel: Resel) -> char {
     }
 }
 
+
+// TODO:
+// 1. Should wrap around the sides of the board
+// 2. If an on and off wire are adjacent, set all as 'on'
+
 /// Given a reselboard, find and index regions of adjacent elements.
 /// Returns tuple (region_by_resel[x][y]->i, resels_by_region[i]->[(x,y), ...])
 fn resel_region_mapping_from_reselboard(
@@ -125,6 +130,7 @@ fn resel_region_mapping_from_reselboard(
     width: usize,
     height: usize,
 ) -> (Vec<Vec<usize>>, Vec<Vec<(usize, usize)>>) {
+
     let mut region_idx: usize = 0;
     let mut visited:     Vec<Vec<bool>> = vec![vec![false; height as usize]; width as usize];
     // todo: visited is redundant, just check region_by_resel? defaults to 0
@@ -255,11 +261,11 @@ fn resel_region_mapping_from_reselboard(
     (region_by_resel, resels_by_region)
 }
 
-/// Given a resoboard and the mapping between regions and resels,
+/// Given a reselboard and the mapping between regions and resels,
 /// get the resel class at each region, plus dense class indices.
 /// (The dense class indices are used when running.)
-fn class_indices_from_resoboard_and_regions(
-    resoboard: &Vec<Vec<Resel>>,
+fn class_indices_from_reselboard_and_regions(
+    reselboard: &Vec<Vec<Resel>>,
     region_by_resel: &Vec<Vec<usize>>,
     resels_by_region: &Vec<Vec<(usize, usize)>>,
 ) -> (Vec<Resel>, Vec<usize>, Vec<usize>, Vec<usize>, Vec<usize>) {
@@ -270,11 +276,15 @@ fn class_indices_from_resoboard_and_regions(
     let mut logic_nodes = Vec::new();
 
     for (region_idx, resels) in resels_by_region.iter().enumerate() {
-        // get resel_class from the first pixel in the region
-        let resel_class = resoboard[resels[0].0][resels[0].1];
+        // get resel_class from the first pixel in the region,
+        // setting Resel::Empty if the region is empty
+        let resel_class = match resels.len() {
+            0 => Resel::Empty,
+            _ => reselboard[resels[0].0][resels[0].1]
+        };
         
         // Update our values
-        class_by_region[region_idx] = resel_class.clone();
+        class_by_region[region_idx] = resel_class;
         match resel_class {
             Resel::WireOrangeOff | Resel::WireOrangeOn |
             Resel::WireSapphireOff | Resel::WireSapphireOn |
@@ -297,6 +307,7 @@ fn class_indices_from_resoboard_and_regions(
     (class_by_region, wire_nodes, input_nodes, output_nodes, logic_nodes)
 }
 
+
 fn main() {
     let img = load_image_from_filename("test.png");
     let (width, height) = img.dimensions();
@@ -308,7 +319,7 @@ fn main() {
     println!("Resel by region:\n{:?}", resels_by_region);
 
     let (class_by_region, wire_nodes, input_nodes, output_nodes, logic_nodes) = 
-        class_indices_from_resoboard_and_regions(
+        class_indices_from_reselboard_and_regions(
             &image_to_reselboard(&img),
             &region_by_resel,
             &resels_by_region,

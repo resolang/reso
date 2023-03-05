@@ -39,6 +39,7 @@ TLDR:
   - See `resels_by_region[i] -> [(x,y),...]` and `region_by_resels[x][y] -> i`
 
 
+
 A **Reso Circuit** contains:
 
  - (Optional) for printing:

@@ -21,7 +21,7 @@ each iteration:
 3. for each output node:
   1. push state to wires
 4. for each wire:
-  1. record state by updating reselboard.
+  1. record state by updating reselboard
   2. update pixels (if outputting image)
 5. then:
   1. if outputting image, update image state, then output

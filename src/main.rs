@@ -1,17 +1,6 @@
 use std::collections::HashMap;
 use image::{GenericImageView, ImageResult, ImageBuffer, Rgba, RgbaImage, DynamicImage};
 
-/* Reso concepts
- * 
- * An image is a 2D array of pixels, each pixel has an RGBA color.
- * 
- * Meanwhile, a 2D "reso circuit": 
- *  - Has a reso-board: a 2D array of resels.
- *  - Resel: Pixel equivalent. Each resel has a resel class and belongs to a region.
- *  - Region: The minimum logical element.
- *            (Wires, input, logic, output, etc. are all composed of regions of one or more resel.)
- *  - The graph of connected regions makes the circuit.
- */
 
 /// Return image::DynamicImage given filename
 fn load_image_from_filename(filename: &str) -> DynamicImage {
@@ -39,9 +28,7 @@ enum Resel {
     Empty
 }
 
-/// Mapping of individual RGBA values to Resel class.
-/// Also see: resel_to_rgba(resel: Resel) -> image::Rgba<u8>
-/// Not to be confused with rgba_to_resel
+/// Mapping of of (R, G, B, A)  to Resel class.
 fn rgbas_to_resel(r: u8, g: u8, b: u8, a: u8) -> Resel {
     match (r, g, b, a) {
         (128,  64,   0, 255) => Resel::WireOrangeOff,
@@ -59,14 +46,11 @@ fn rgbas_to_resel(r: u8, g: u8, b: u8, a: u8) -> Resel {
 }
 
 /// Mapping of image::Rgba<u8> to Resel class.
-/// Also see: resel_to_rgba(resel: Resel) -> image::Rgba<u8>
-/// Not to be confused with rgbas_to_resel
 fn rgba_to_resel(pixel: Rgba<u8>) -> Resel {
     rgbas_to_resel(pixel[0], pixel[1], pixel[2], pixel[3])
 }
 
 /// Mapping of Resel class to RGBA value.
-/// Also see: rgba_to_resel(r: u8, g: u8, b: u8, a: u8) -> Resel
 fn resel_to_rgba(resel: Resel) -> Rgba<u8> {
     match resel {
         Resel::WireOrangeOff   => Rgba([128,  64,   0, 255]),
@@ -84,7 +68,6 @@ fn resel_to_rgba(resel: Resel) -> Rgba<u8> {
 }
 
 // Map an rgba image to a 2D grid of Resels.
-// (img: &DynamicImage means `img` is a *reference* to a `DynamicImage)
 fn image_to_reselboard(img: &DynamicImage) -> Vec<Vec<Resel>> {
     let (width, height) = img.dimensions();
     let mut reselboard = vec![vec![Resel::Empty; height as usize]; width as usize];
@@ -100,33 +83,43 @@ fn image_to_reselboard(img: &DynamicImage) -> Vec<Vec<Resel>> {
     // see https://stackoverflow.com/questions/59164456/
 }
 
-// compile to circuit elements
+/// Unusued; for text-based reselboard.
+fn ascii_to_resel(c: char) -> Resel {
+    match c {
+        'O' => Resel::WireOrangeOff,
+        'o' => Resel::WireOrangeOn,
+        'S' => Resel::WireSapphireOff,
+        's' => Resel::WireSapphireOn,
+        'L' => Resel::WireLimeOff,
+        'l' => Resel::WireLimeOn,
+        '&' => Resel::AND,
+        '^' => Resel::XOR,
+        'I' => Resel::Input,
+        'O' => Resel::Output,
+        ' ' => Resel::Empty,
+        _ => Resel::Empty,
+    }
+}
 
-//todo: ascii_to_resel, resel_to_ascii, resoascii_to_resoboard, resoboard_to_resoascii
+/// Unusued; for text-based reselboard.
+fn resel_to_ascii(resel: Resel) -> char {
+    match resel {
+        Resel::WireOrangeOff   => 'O',
+        Resel::WireOrangeOn    => 'o',
+        Resel::WireSapphireOff => 'S',
+        Resel::WireSapphireOn  => 's',
+        Resel::WireLimeOff     => 'L',
+        Resel::WireLimeOn      => 'l',
+        Resel::AND             => '&',
+        Resel::XOR             => '^',
+        Resel::Input           => 'I',
+        Resel::Output          => 'O',
+        Resel::Empty           => ' ',
+    }
+}
 
-//todo: compile_resoboard
 
-/* todo: struct ResoCircuit
-    // aux drawing data
-    - resels_by_region, region_by_resel
-
-    // compiled graph
-    - class_by_region
-    - wire_nodes, input_nodes, logic_nodes, output_nodes
-    - wires_to_inputs, inputs_to_logic, inputs_to_outputs, outputs_to_wires
-        ... sparse adjacency via hashmap? (custom hashmap region idx -> vec<region idx>?) we expect sparse indexing ints to ints
-        ... direct adjacency matrix? (num regions x num regions)?
-        ... sparse adjacency via vec? vec<vec<usize>>, mostly empty. e.g. [[], [], [], [3, 4], []] etc
-        ... Just use HashMap, probably, then revisit when I know more
-
-    // temp vars which change while running
-    - wire_state
-    - input_state
-    - output_state
-*/
-
-// think of a "resel" as a "pixel" basically.
-// resel_region_mapping_from_reselboard(reselboard, width, height) -> region_by_resel, resels_by_region
+/// Given a reselboard, find and index regions of adjacent elements.
 fn resel_region_mapping_from_reselboard(
     reselboard: &Vec<Vec<Resel>>,
     width: usize,
@@ -134,7 +127,7 @@ fn resel_region_mapping_from_reselboard(
 ) -> (Vec<Vec<usize>>, Vec<Vec<(usize, usize)>>) {
     let mut region_idx: usize = 0;
     let mut visited:     Vec<Vec<bool>> = vec![vec![false; height as usize]; width as usize];
-    // todo: visited is redundant, just check region_by_resel? defaults to 9
+    // todo: visited is redundant, just check region_by_resel? defaults to 0
     let mut region_by_resel: Vec<Vec<usize>> = vec![vec![0; height as usize]; width as usize];
     let mut resels_by_region: Vec<Vec<(usize, usize)>> = vec![Vec::new()];
 
@@ -262,6 +255,7 @@ fn resel_region_mapping_from_reselboard(
     (region_by_resel, resels_by_region)
 }
 
+
 fn main() {
     let img = load_image_from_filename("test.png");
     let (width, height) = img.dimensions();
@@ -272,3 +266,4 @@ fn main() {
     println!("Region by resel:\n{:?}", region_by_resel);
     println!("Resel by region:\n{:?}", resels_by_region);
 }
+

@@ -5,3 +5,11 @@ Reso is a toy for drawing and executing circuits. It works by connecting digital
 Under the hood, Reso works by compiling to a graph of logic elements, represented using adjacency lists. (We kind of assume the graph is sparse.) It's tempting to think of the wires as edges, but wires are reso nodes too.
 
 This program assumes you're using a 2D bitmap (i.e. an image), but this can be extended to anything! A 3D bitmap (like Minecraft), a 2D vector image (SVGs), etc.
+
+---
+
+A **Reso Circuit** contains:
+
+ - (Optional) for printing:
+  - The original input image. This is to preserve 'comments' when exporting, because they are not preserved when mapping to ResoBoard.
+ - 

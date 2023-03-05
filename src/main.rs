@@ -86,16 +86,16 @@ fn image_to_reselboard(img: &DynamicImage) -> Vec<Vec<Resel>> {
 /// Unusued; for text-based reselboard.
 fn ascii_to_resel(c: char) -> Resel {
     match c {
-        'O' => Resel::WireOrangeOff,
-        'o' => Resel::WireOrangeOn,
-        'S' => Resel::WireSapphireOff,
-        's' => Resel::WireSapphireOn,
-        'L' => Resel::WireLimeOff,
-        'l' => Resel::WireLimeOn,
+        'o' => Resel::WireOrangeOff,
+        'O' => Resel::WireOrangeOn,
+        's' => Resel::WireSapphireOff,
+        'S' => Resel::WireSapphireOn,
+        'l' => Resel::WireLimeOff,
+        'L' => Resel::WireLimeOn,
         '&' => Resel::AND,
         '^' => Resel::XOR,
-        'I' => Resel::Input,
-        'O' => Resel::Output,
+        '+' => Resel::Input,
+        '=' => Resel::Output,
         ' ' => Resel::Empty,
         _ => Resel::Empty,
     }
@@ -104,16 +104,16 @@ fn ascii_to_resel(c: char) -> Resel {
 /// Unusued; for text-based reselboard.
 fn resel_to_ascii(resel: Resel) -> char {
     match resel {
-        Resel::WireOrangeOff   => 'O',
-        Resel::WireOrangeOn    => 'o',
-        Resel::WireSapphireOff => 'S',
-        Resel::WireSapphireOn  => 's',
-        Resel::WireLimeOff     => 'L',
-        Resel::WireLimeOn      => 'l',
+        Resel::WireOrangeOff   => 'o',
+        Resel::WireOrangeOn    => 'O',
+        Resel::WireSapphireOff => 's',
+        Resel::WireSapphireOn  => 'S',
+        Resel::WireLimeOff     => 'l',
+        Resel::WireLimeOn      => 'L',
         Resel::AND             => '&',
         Resel::XOR             => '^',
-        Resel::Input           => 'I',
-        Resel::Output          => 'O',
+        Resel::Input           => '+',
+        Resel::Output          => '=',
         Resel::Empty           => ' ',
     }
 }

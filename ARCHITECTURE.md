@@ -25,8 +25,19 @@ Here's how creating a new Reso circuit works:
     - Index '0' is for every Resel not a region, i.e. `Empty`.
   - Wire adjacency rules: Wires of the same color, on or off, are adjacent by orthogonal and diagonal neighbors.
   - Every other node (and, xor, input, output) are adjacent by orthogonal neighbors only.
-  - In the code, this is represented by two values:
-    - **resels_by_region**: 
+  - The **mapping** is between Resel `x,y` and region integer index `i`.
+    - **resels_by_region**: Map region `i` to list of resel `x,y`
+      - E.g. `resels_by_region[3] = [(1,2),(1,3),...]`
+    - **region_by_resels**: Map resel `x,y` to the region `i` it belongs to.
+      - E.g. `region_by_resels[1][3] = 3`
+    
+TLDR:
+
+- **Resel:** Reso pixel at an `x,y` coordinate with a class.
+- **Reso board:** 2D Reso image with widthm height.
+- **Region:** Region of adjacent, like Resels. Has an index `i`.
+  - See `resels_by_region[i] -> [(x,y),...]` and `region_by_resels[x][y] -> i`
+
 
 A **Reso Circuit** contains:
 

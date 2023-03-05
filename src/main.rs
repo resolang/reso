@@ -118,8 +118,8 @@ fn resel_to_ascii(resel: Resel) -> char {
     }
 }
 
-
 /// Given a reselboard, find and index regions of adjacent elements.
+/// Returns tuple (region_by_resel[x][y]->i, resels_by_region[i]->[(x,y), ...])
 fn resel_region_mapping_from_reselboard(
     reselboard: &Vec<Vec<Resel>>,
     width: usize,
@@ -253,6 +253,43 @@ fn resel_region_mapping_from_reselboard(
     } // for each x
 
     (region_by_resel, resels_by_region)
+}
+
+
+
+#[derive(Debug, Clone)]
+struct ResoCircuit {
+    // aux drawing data
+    original_image: image::DynamicImage,
+    reselboard: Vec<Vec<Resel>>,
+    region_by_resel: Vec<Vec<usize>>,
+    resels_by_region: Vec<Vec<(usize, usize)>>,
+
+    // index regions by resel class
+    // in addition to region index, this also maintains a dense index for wire, io, logic
+    // (e.g. region 7 might be wire 3, so wire_nodes[3] == 7)
+    class_by_region: Vec<Resel>, // length == number of total regions
+    wire_nodes: Vec<usize>,      // length == number of wire regions
+    input_nodes: Vec<usize>,     // 
+    output_nodes: Vec<usize>,
+    logic_nodes: Vec<usize>,
+
+    // connectivity data between classes
+    // uses the dense indices for wire_nodes, input_nodes, etc. above
+    // (e.g. we might have input_nodes[4] == 8, and input_to_wire[4] == [3,]
+    //  which means region 8 is input 4, and has incident wire 3, which is region 7)
+    // (But you can ignore region index here, since we dense per-class indices.
+    input_to_wire: Vec<Vec<usize>>,  // input_idx -> wire_idx. (input nodes poll incident wires)
+    input_to_logic: Vec<Vec<usize>>,
+    input_to_output: Vec<Vec<usize>>,
+    logic_to_output: Vec<Vec<usize>>,
+    output_to_wire: Vec<Vec<usize>>,
+    
+
+    // temporary state data used at runtime
+    wire_state: Vec<bool>, // length == number of wire regions
+    logic_state: Vec<bool>,
+    output_state: Vec<bool>,
 }
 
 

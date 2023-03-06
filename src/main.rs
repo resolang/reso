@@ -179,48 +179,52 @@ fn resel_region_mapping_from_reselboard(
               Resel::WireSapphireOff, Resel::WireSapphireOn,
               Resel::WireLimeOff, Resel::WireLimeOn
             ].contains(&reselboard[x][y]) {
-              // Diagonal and orthogonal neighbors
-              [(1,0), (1, height-1), (0, height-1), (width-1, height-1),
-               (width-1, 0), (width-1, 1), (0, 1), (1,1)]
+              // then iterate over diagonal and orthogonal neighbors
+              [(1,0), (0, height-1), (width-1, 0),  (0, 1),
+               (1, height-1), (width-1, height-1), (width-1,1), (1,1),
+              ]
             } else if [
               Resel::AND, Resel::XOR, Resel::Input, Resel::Output
             ].contains(&reselboard[x][y]) {
-              // Orthogonal neighbors only. (dx,dy = 0,0 is skipped below.
+              // then iterate over Orthogonal neighbors only. (dx,dy = 0,0 is skipped below.)
               [(1,0), (0,height-1), (width-1, 0), (0, 1), (0,0), (0,0), (0,0), (0,0)]
             } else { // No neighbors, dead case.
               [(0,0), (0,0), (0,0), (0,0), (0,0), (0,0), (0,0), (0,0)]
             }
           }.iter() { // for (dx, dy) in ..neighbors to check.. {
-            match (
-              &reselboard[x][y], // Current resel
-              &reselboard[(x + dx) % width][(y + dy)%height] // Neighbor resel
-            ) {
-              // Simple case: Resels match
-              (resel_a, resel_b) if (
-                // resel_a matches resel_b, not the originating pixel, and not already visited
-                resel_a == resel_b && *dx != 0 && *dy != 0 && !visited[(x + dx) % width][(y + dy)%height]
-              ) => {neighbors.push(((x + dx) % width, (y + dy)%height));},
-              // Wires case: Match, but have different on/off values, add the resel to our bag of neighbors
-              (
-                // e.g. current resel and adjacent resel are orange
-                Resel::WireOrangeOff | Resel::WireOrangeOn,
-                Resel::WireOrangeOn  | Resel::WireOrangeOff
-              ) | (
-                // e.g. current resel and adjacent resel are sapphire
-                Resel::WireSapphireOff | Resel::WireSapphireOn,
-                Resel::WireSapphireOn  | Resel::WireSapphireOff
-              ) | (
-                // e.g. current resel and adjacent resel are lime
-                Resel::WireLimeOff | Resel::WireLimeOn,
-                Resel::WireLimeOn | Resel::WireLimeOff
-              // ..., not the originating pixel, and not already visited
-              ) if (*dx != 0 && *dy != 0 && !visited[(x + dx) % width][(y + dy)%height]) => {
-                neighbors.push(((x + dx) % width, (y+ dy)%height))
-              },
-              // Else, do nothing
-              (_, _) => { }
-              // setting region_by_resel and resel_by_region happens at the start
-            } // match expression to check contiguity. If contiguous, add to neighbors
+            // Check if neighbor is not already visited, and is not the originating pixel
+            //println!("({},{}) Checking neighbor ({}, {})", x, y, (x + dx) % width, (y + dy)%height);
+            if (*dx != 0 || *dy != 0) && !visited[(x + dx) % width][(y + dy)%height] {
+              match (
+                // current resel, neighbor resel
+                &reselboard[x][y],
+                &reselboard[(x + dx) % width][(y + dy)%height]
+              ) {
+                (resel_a, resel_b) if ( resel_a == resel_b ) => {
+                  println!("  Simple case, adding neighbor ({}, {})", (x + dx) % width, (y + dy)%height);
+                  neighbors.push(((x + dx) % width, (y + dy)%height));
+                },
+                // Wires matching but have different on/off values
+                ( Resel::WireOrangeOff | Resel::WireOrangeOn,
+                  Resel::WireOrangeOn  | Resel::WireOrangeOff
+                ) | (
+                  Resel::WireSapphireOff | Resel::WireSapphireOn,
+                  Resel::WireSapphireOn  | Resel::WireSapphireOff
+                ) | (
+                  Resel::WireLimeOff | Resel::WireLimeOn,
+                  Resel::WireLimeOn | Resel::WireLimeOff
+                ) => {
+                  println!("  Wire case, adding neighbor ({}, {})", (x + dx) % width, (y + dy)%height);
+                  neighbors.push(((x + dx) % width, (y+ dy) % height))
+                },
+                // Else, no match
+                (_, _) => { },
+              }
+                // todo lynn
+            } else {
+                // neighbor coord is invalid, nothing to do!
+                //println!("  ... {} {} {}", *dx != 0, *dy != 0, !visited[(x + dx) % width][(y + dy)%height]);
+            }// match expression to check contiguity. If contiguous, add to neighbors
           } // loop which checks adjacent resels for contiguity.
         } // loop over adjacent resels, updating region_by_resel and resels_by_region
       } // consider resel. if a new region, look for adjacent resels

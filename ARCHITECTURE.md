@@ -1,8 +1,36 @@
-# ARCHITECTURE and RESO CONCEPTS
+ARCHITECTURE and RESO CONCEPTS
+===
 
-TODO: this ugley
+Reso is a toy for simulating logic circuits defined by pixel art. It does so by compiling regions of pixels into their corresponding logical elements, and compiling a logic graph from adjacent regions of pixels. The major inspiration is Minecraft's redstone and esolangs like Piet.
 
-Reso is a toy for simulating logic circuits defined by pixel art. **Wires** carry boolean values to **input nodes**, which carry values to **logic** and **output** nodes. The output nodes then connect to other **wires.** The major inspiration is Minecraft's redstone and esolangs like Piet.
+# Summary
+
+The logic graph is an undirected graph of nodes of the following elements:
+
+1. Wires carry a boolean state and are one of three colors.
+  - Like insulation, the color of the wire do not matter.
+2. Input nodes collect the state of all adjacent wire nodes into a boolean vector, i.e. $\{0,1\}^*$.
+3. The two logic nodes (`AND` and `XOR`) calculate a single boolean based on the booleans of all adjacent input nodes.
+4. The output nodes calculate the logical OR of all the bits stored in all adjacent input and output nodes.
+5. At the end of each simulation loop, the wires are updated with the values from adjacent output nodes.
+
+In this implementation, the logic graph of a Reso circuit is compiled from 2D  bitmap images. There is no reason a Reso circuit could not be defined by, say, a 3D bitmap, or a bitmap of ASCII characters, or an SVG, etc.
+
+Here is how that process works:
+
+1. The input is a bitmap image of RGB pixels with a given `(width, height)`
+2. The bitmap image is converted pixel-per-pixel to a `ReselBoard: Vec<Vec<Resel>>`, where a `Resel` is an enum of one of the eleven Resel classes. (Six classes for wires, AND, XOR, input, output, and "empty".)
+  - Six classes for wires `WireOrangeOff`, `WireOrangeOn`, `WireSapphireOff`, `WireSapphireOn`, `WireLimeOff`, `WireLimeOn`
+  - Four classes for `AND`, `XOR`, `Input`, `Output`.
+  - One class for `Empty`, which 
+3. Contiguous regions (8-way contiguity for wires, 4-way orthogonal contiguity for other elements) are calculated and given a region index `i`.
+  - This data is stored in two mappings, `region_by_resel[x][y]->i` and  `resels_by_region[i]->[(x,y), ...]`.
+  - Each region represents a node.
+4. Adjacencies between regions are calculated to form the logic graph.
+  - Only pertinent adjacencies are recorded: Input to logic, input to output, logic to output, and logic to wire.
+5. This data is used by the Reso Circuit when simulating the circuit. 
+
+# More details (WIP)
 
 Under the hood, Reso works by taking a bitmap, mapping pixels to "resels" based on RGB values, finding contiguous regions of resels, and ultimately compiling that to a graph of logic nodes represented with adjacency lists. (This is performant assuming a sparse graph.) It's tempting to think of the wires as edges between logical elements, but wires are reso nodes too.
 
@@ -37,29 +65,22 @@ Here's how creating a new Reso circuit works:
 5. The end-result is a compiled **Reso circuit** which is ready for execution.
   - In this implementation, regions and nodes are one and the same. An optimization option to discard region information can be implemented here.
 
+
+# Glossary and palette (WIP)
+
 TLDR:
 
-| Term  | Definition |
+| Term  | Definition | 
 | ----- | ---------- |
-| Pixel | A three-byte RGB value at a given `x,y` position in a bitmap
+| **Images** | |
+| Pixel | A three-byte RGB value at a given `x,y` position in a bitmap.
 | Bitmap | A grid of pixels with a given `width, height`. Reso programs can be defined by bitmaps.
-| Resel | A Reso element with a class at a given `x,y` position in a Reso board.
-| Resel board | A grid of resels with a given `width, height`. Reso programs can be defined by such a board.
+| **Resels** | |
+| Resel | A Reso element with a class at a given `x,y` position in a Resel board.
 | Class | One of 11 values defining the functionality of a region.
+| Resel board | A grid of resels with a given `width, height`. Reso programs can be defined by such a board.
+| **Circuits** | |
 | Region | A contiguous collection of Resel's with the same class, forming a node.
 | Node  | The smallest logical unit in a Reso program. 
-| Reso Circuit | A graph of nodes ready for execution.
+| Reso Circuit | A graph of nodes ready for simulation.
 
-TLDR plus technical details:
-
-| Term  | Definition |
-| ----- | ---------- |
-| Region | Has index `i`, see `resels_by_region[i] -> [(x,y),...]` and `region_by_resels[x][y] -> i`
-
-
-
-A **Reso Circuit** contains:
-
- - (Optional) for printing:
-  - The original input image. This is to preserve 'comments' when exporting, because they are not preserved when mapping to ReselBoard.
- - 

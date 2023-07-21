@@ -42,7 +42,7 @@ fn rgbas_to_resel(r: u8, g: u8, b: u8, a: u8) -> Resel {
   }
 }
 
-/// Mapping of image::Rgba<u8> to Resel class.
+/// Mapping of image::Rgba<u8> to Resel class. Convenience.
 fn rgba_to_resel(pixel: Rgba<u8>) -> Resel {
   rgbas_to_resel(pixel[0], pixel[1], pixel[2], pixel[3])
 }
@@ -51,16 +51,16 @@ fn rgba_to_resel(pixel: Rgba<u8>) -> Resel {
 fn resel_to_rgba(resel: Resel) -> Rgba<u8> {
   match resel {
     Resel::WireOrangeOff   => Rgba([128,  64,   0, 255]),
-    Resel::WireOrangeOn  => Rgba([255, 128,   0, 255]),
+    Resel::WireOrangeOn    => Rgba([255, 128,   0, 255]),
     Resel::WireSapphireOff => Rgba([  0,  64, 128, 255]),
     Resel::WireSapphireOn  => Rgba([  0, 128, 255, 255]),
-    Resel::WireLimeOff   => Rgba([64,  128,   0, 255]),
-    Resel::WireLimeOn    => Rgba([128, 255,   0, 255]),
-    Resel::AND       => Rgba([  0, 128,  64, 255]),
-    Resel::XOR       => Rgba([  0, 255, 128, 255]),
-    Resel::Input       => Rgba([ 64,   0, 128, 255]),
-    Resel::Output      => Rgba([128,   0, 255, 255]),
-    Resel::Empty       => Rgba([0, 0, 0, 0])
+    Resel::WireLimeOff     => Rgba([64,  128,   0, 255]),
+    Resel::WireLimeOn      => Rgba([128, 255,   0, 255]),
+    Resel::AND             => Rgba([  0, 128,  64, 255]),
+    Resel::XOR             => Rgba([  0, 255, 128, 255]),
+    Resel::Input           => Rgba([ 64,   0, 128, 255]),
+    Resel::Output          => Rgba([128,   0, 255, 255]),
+    Resel::Empty           => Rgba([0, 0, 0, 0])
   }
 }
 
@@ -100,16 +100,16 @@ fn ascii_to_resel(c: char) -> Resel {
 fn resel_to_ascii(resel: Resel) -> char {
   match resel {
     Resel::WireOrangeOff   => 'o',
-    Resel::WireOrangeOn  => 'O',
+    Resel::WireOrangeOn    => 'O',
     Resel::WireSapphireOff => 's',
     Resel::WireSapphireOn  => 'S',
-    Resel::WireLimeOff   => 'l',
-    Resel::WireLimeOn    => 'L',
-    Resel::AND       => '&',
-    Resel::XOR       => '^',
-    Resel::Input       => '+',
-    Resel::Output      => '=',
-    Resel::Empty       => ' ',
+    Resel::WireLimeOff     => 'l',
+    Resel::WireLimeOn      => 'L',
+    Resel::AND             => '&',
+    Resel::XOR             => '^',
+    Resel::Input           => '+',
+    Resel::Output          => '=',
+    Resel::Empty           => ' ',
   }
 }
 
@@ -324,6 +324,7 @@ struct ResoCircuit {
   //  which means region 8 is input 4, and has incident wire 3, which is region 7)
   // (But you can ignore region index here, since we dense per-class indices.
   input_to_wire:   Vec<Vec<usize>>,  // input_idx -> wire_idx. (input nodes poll incident wires)
+  // todo: Should the above be wire_to_input?
   input_to_logic:  Vec<Vec<usize>>,
   input_to_output: Vec<Vec<usize>>,
   logic_to_output: Vec<Vec<usize>>,
@@ -335,42 +336,7 @@ struct ResoCircuit {
   output_state: Vec<bool>,
 }
 
-/*
-fn compile_reso_circuit_from_image(img: &image::DynamicImage) -> ResoCircuit {
-  let reselboard = image_to_reselboard(img);
 
-  let (width, height) = (reselboard.len(), reselboard[0].len());
-
-  let (region_by_resel, resels_by_region) = resel_region_mapping_from_reselboard(
-    &reselboard, width, height
-  );
-
-  
-  let class_by_region = vec![Resel::Empty; 0];
-    
-
-  ResoCircuit {
-    image: img.clone(),
-    reselboard: reselboard,
-    region_by_resel: region_by_resel,
-    resels_by_region: resels_by_region,
-    class_by_region: vec![Resel::Empty; 0],
-    wire_nodes: vec![0; 0],
-    input_nodes: vec![0; 0],
-    output_nodes: vec![0; 0],
-    logic_nodes: vec![0; 0],
-    input_to_wire: vec![vec![0; 0]; 0],
-    input_to_logic: vec![vec![0; 0]; 0],
-    input_to_output: vec![vec![0; 0]; 0],
-    logic_to_output: vec![vec![0; 0]; 0],
-    output_to_wire: vec![vec![0; 0]; 0],
-    wire_state: vec![false; 0],
-    logic_state: vec![false; 0],
-    output_state: vec![false; 0],
-  };
-}*/
-
-// todo! next time lynn:
 // 1. ResoCircuit struct, which is instantiated from a ReselBoard
 // 2. Simple mappings for region indices. (class_by_region, wire_nodes, etc.)
 // 3. With that done, adjacency mappings. (input_to_wire, etc.)
@@ -382,17 +348,65 @@ impl ResoCircuit {
     let (width, height) = (reselboard.len(), reselboard[0].len());
 
     let (region_by_resel, resels_by_region) = resel_region_mapping_from_reselboard(
-      &reselboard, width, height
+      &reselboard
     );
 
-    let class_by_region = vec![Resel::Empty; 0];
-    let wire_nodes = vec![0; 0];
-    let input_nodes = vec![0; 0];
-    let output_nodes = vec![0; 0];
-    let logic_nodes = vec![0; 0];
-    let input_to_wire = vec![vec![0; 0]; 0];
-    let input_to_logic = vec![vec![0; 0]; 0];
-    let input_to_output = vec![vec![0; 0]; 0];
+    let (
+      class_by_region, wire_nodes, input_nodes, output_nodes, logic_nodes
+    ) = class_indices_from_reselboard_and_regions(
+      &reselboard, &region_by_resel, &resels_by_region
+    );
+
+    // TODO from here down
+
+    // map input_idx to adjacent regions
+    let input_adjacencies: Vec<Vec<usize>> = input_nodes.iter().map(
+      |&input_region_idx| {
+        get_adjacent_region_idxs(input_region_idx, &region_by_resel, &resels_by_region)
+      }
+    ).collect();
+
+    /*
+    input_idx_to_output_idx: Vec<Vec<usize>> = empty;
+
+    for each (input_local_ii, input_region_ii):
+      get adjacencies for input_region_ii
+      for each adjacent region,
+        check the class.
+        if it is an output node, we want to add it to input_idx_to_output_idx
+        note: we want to add the local index, not the region index
+        (we will need to find it thru `output_nodes`)
+      ( O(n) searchup could be made O(logn) by assuming 
+        class_indices_from_reselboard_and_regions is sorted first
+      )
+    */
+    let input_to_output = 
+
+    /*
+    let input_to_wire = input_adjacencies.iter().filter(
+      |adj_region_idx| {
+        vec![
+          Resel::WireOrangeOff, Resel::WireOrangeOn,
+          Resel::WireSapphireOff, Resel::WireSapphireOn,
+          Resel::WireLimeOff, Resel::WireLimeOn,
+        ].contains(&class_by_region[adj_region_idx])
+      }
+    ).collect();
+
+    let input_to_logic = &input_adjacencies.iter().filter(
+      |adj_region_idx| {
+        vec![Resel::AND, Resel::XOR].contains(&class_by_region[adj_region_idx])
+      }
+    ).collect();
+
+    let input_to_output = &input_adjacencies.iter().filter(
+      |&adj_region_idx| {
+        &class_by_region[*adj_region_idx] == Resel::Output;
+      }
+    ).collect();
+    */
+
+
     let logic_to_output = vec![vec![0; 0]; 0];
     let output_to_wire = vec![vec![0; 0]; 0];
     let wire_state = vec![false; 0];

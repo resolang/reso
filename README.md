@@ -4,11 +4,15 @@ WIP!
 
 See https://gitlab.com/resolang/reso (originally at https://gitlab.com/lynnpepin/reso).
 
-
----
-
 TODOs:
 
+- https://doc.rust-lang.org/rust-by-example/testing/unit_testing.html
+
+- [ ] Go full TDD?
+- [ ] Fix region mapping. Something is wrong!
+   - Look at test.png.
+   - Pixels are added multiple times per region. (E.g. `(0, 4)`.
+   - 
 - [ ] Start working on ResoCircuit
   - [ ] Instantiate by filepath, by image, or by reselboard
   - [ ] Populate region and node indices

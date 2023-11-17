@@ -20,12 +20,15 @@ Here is how that process works:
 
 1. The input is a bitmap image of RGB pixels with a given `(width, height)`
 2. The bitmap image is converted pixel-per-pixel to a `ReselBoard: Vec<Vec<Resel>>`, where a `Resel` is an enum of one of the eleven Resel classes. (Six classes for wires, AND, XOR, input, output, and "empty".)
-  - Six classes for wires `WireOrangeOff`, `WireOrangeOn`, `WireSapphireOff`, `WireSapphireOn`, `WireLimeOff`, `WireLimeOn`
+  - Six classes for wires `WireOrangeOff`, `WireOrangeOn`, `WireSapphireOff`, `WireSapphireOn`, `WireLimeOff`, `WireLimeOn`.
   - Four classes for `AND`, `XOR`, `Input`, `Output`.
-  - One class for `Empty`, which 
-3. Contiguous regions (8-way contiguity for wires, 4-way orthogonal contiguity for other elements) are calculated and given a region index `i`.
+  - One class for `Empty`, to which all other colors map.
+
+3. Contiguous regions are calculated and given a region index `i`.
+  - Wires are handled in a special way: Wires can be contiguous diagonally as well as orthogonally, and adjacent wire resels of the same color but different state (say, `WireLimeOff` and `WireLimeOn`) are considered the same region. (See `is_resel_same_class`
   - This data is stored in two mappings, `region_by_resel[x][y]->i` and  `resels_by_region[i]->[(x,y), ...]`.
   - Each region represents a node.
+
 4. Adjacencies between regions are calculated to form the logic graph.
   - Only pertinent adjacencies are recorded: Input to logic, input to output, logic to output, and logic to wire.
 5. This data is used by the Reso Circuit when simulating the circuit. 

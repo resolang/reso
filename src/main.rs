@@ -113,6 +113,28 @@ fn resel_to_ascii(resel: Resel) -> char {
   }
 }
 
+fn is_resel_same_class(resel1: Resel, resel2: Resel) -> bool {
+  match (resel1, resel2) {
+    // Handle wire special cases
+    // there has to be a better way to do this
+    ( Resel::WireOrangeOff | Resel::WireOrangeOn,
+      Resel::WireOrangeOn  | Resel::WireOrangeOff
+    ) | (
+      Resel::WireSapphireOff | Resel::WireSapphireOn,
+      Resel::WireSapphireOn  | Resel::WireSapphireOff
+    ) | (
+      Resel::WireLimeOff | Resel::WireLimeOn,
+      Resel::WireLimeOn | Resel::WireLimeOff
+    ) => { true },
+    (_, _) => { 
+      // All other cases: Match true if resels are the same class
+      resel1 == resel2
+    }
+  }
+}
+
+// TODO FROM HERE DOWN: Rework this function so that it does not yield duplicates
+
 /// Given a reselboard, find and index regions of adjacent elements.
 /// Returns tuple (region_by_resel[x][y]->i, resels_by_region[i]->[(x,y), ...])
 fn resel_region_mapping_from_reselboard(
@@ -122,9 +144,9 @@ fn resel_region_mapping_from_reselboard(
   // or reselboard with a column that is too short
   let (width, height) = (reselboard.len(), reselboard[0].len());
 
-  let mut region_idx: usize = 0;
-  let mut visited:  Vec<Vec<bool>> = vec![vec![false; height as usize]; width as usize];
-  let mut region_by_resel: Vec<Vec<usize>> = vec![vec![0; height as usize]; width as usize];
+  let mut region_idx:       usize = 0;
+  let mut visited:          Vec<Vec<bool>>  = vec![vec![false; height as usize]; width as usize];
+  let mut region_by_resel:  Vec<Vec<usize>> = vec![vec![0; height as usize]; width as usize];
   let mut resels_by_region: Vec<Vec<(usize, usize)>> = vec![Vec::new()];
 
   // resels_by_region[0] empty-- we index regions starting with 1.
@@ -141,13 +163,13 @@ fn resel_region_mapping_from_reselboard(
       if visited[x][y] {
         // Already visited; pass
       } else if reselboard[x][y] == Resel::Empty {
-        // Mark as visited, but Empty does not make a Region. No work to do here.
+        // Empty can not be a region. No other work to do here
         visited[x][y] = true
       } else {
-        // Unvisited Resel marks a new region.
+        // Unvisited Resel marks a new region!
         // Update our region count, and prepare to mark new resels.
-        // (region_idx 0 skipped intentionally; resels_by_region[0] stays empty.
-        //  On first loop, region_idx == 1, resels_by_region.len() == 2)
+        // (Per above, region_idx 0 skipped so resels_by_region[0] stays empty.)
+        // (On first loop, region_idx == 1, resels_by_region.len() == 2)
         region_idx += 1;
         resels_by_region.push(Vec::new());
 
@@ -158,21 +180,24 @@ fn resel_region_mapping_from_reselboard(
         // `neighbors` is only empty once all regions have been explored.
         while !neighbors.is_empty() {
           let (x, y) = neighbors.pop().unwrap();
-          // (x,y) is a new resel in our region. Mark it
+          // visiting a new resel!
           region_by_resel[x][y] = region_idx;
           resels_by_region[region_idx].push((x,y));
           visited[x][y] = true;
+          // todo: should visited be set even if a resel neighbor is not of the same class?
+          // as i read this, i think this is wrong, but the printed results are correct...
+          // ... perhaps this is my food-addled brain simply not understanding things :)
 
           // Check contiguity to add neighbors in direction (dx, dy)
           for (dx, dy) in {
             // contiguity is orthogonal. wires can also be diagonally orthogonal
             if [
-              Resel::WireOrangeOff, Resel::WireOrangeOn,
+              Resel::WireOrangeOff,   Resel::WireOrangeOn,
               Resel::WireSapphireOff, Resel::WireSapphireOn,
-              Resel::WireLimeOff, Resel::WireLimeOn
+              Resel::WireLimeOff,     Resel::WireLimeOn
             ].contains(&reselboard[x][y]) {
               // then iterate over diagonal and orthogonal neighbors
-              [(1,0), (0, height-1), (width-1, 0),  (0, 1),
+              [(1, 0),  (0, height-1), (width-1, 0),  (0, 1),
                (1, height-1), (width-1, height-1), (width-1,1), (1,1),
               ]
             } else if [
@@ -186,49 +211,34 @@ fn resel_region_mapping_from_reselboard(
           }.iter() { // for (dx, dy) in ..neighbors to check.. {
             // Check if neighbor is not already visited, and is not the originating pixel
             //println!("({},{}) Checking neighbor ({}, {})", x, y, (x + dx) % width, (y + dy)%height);
-            if (*dx != 0 || *dy != 0) && !visited[(x + dx) % width][(y + dy)%height] {
-              match (
-                // current resel, neighbor resel
-                &reselboard[x][y],
-                &reselboard[(x + dx) % width][(y + dy)%height]
-              ) {
-                (resel_a, resel_b) if ( resel_a == resel_b ) => {
-                  println!("  Simple case, adding neighbor ({}, {})", (x + dx) % width, (y + dy)%height);
-                  neighbors.push(((x + dx) % width, (y + dy)%height));
-                },
-                // Wires matching but have different on/off values
-                ( Resel::WireOrangeOff | Resel::WireOrangeOn,
-                  Resel::WireOrangeOn  | Resel::WireOrangeOff
-                ) | (
-                  Resel::WireSapphireOff | Resel::WireSapphireOn,
-                  Resel::WireSapphireOn  | Resel::WireSapphireOff
-                ) | (
-                  Resel::WireLimeOff | Resel::WireLimeOn,
-                  Resel::WireLimeOn | Resel::WireLimeOff
-                ) => {
-                  println!("  Wire case, adding neighbor ({}, {})", (x + dx) % width, (y + dy)%height);
-                  neighbors.push(((x + dx) % width, (y+ dy) % height))
-                },
-                // Else, no match
-                (_, _) => { },
-              }
-                // todo lynn
+            if (
+              (*dx != 0 || *dy != 0)
+              && !visited[(x + dx) % width][(y + dy)%height]
+              && is_resel_same_class(
+                reselboard[x][y],
+                reselboard[(x + dx) % width][(y + dy)%height]
+              )
+           ) {
+              neighbors.push(((x + dx) % width, (y + dy)%height));
             } else {
-                // neighbor coord is invalid, nothing to do!
-                //println!("  ... {} {} {}", *dx != 0, *dy != 0, !visited[(x + dx) % width][(y + dy)%height]);
-            }// match expression to check contiguity. If contiguous, add to neighbors
+              // neighbor coord is invalid, nothing to do!
+              //println!("  ... {} {} {}", *dx != 0, *dy != 0, !visited[(x + dx) % width][(y + dy)%height]);
+            } // If the same class, add to neighbors and mark as visited :)
           } // loop which checks adjacent resels for contiguity.
         } // loop over adjacent resels, updating region_by_resel and resels_by_region
-      } // consider resel. if a new region, look for adjacent resels
-    } // for each y
-  } // for each x
+      } // consider resel. If unvisited, it's a new region, so look for adjacent resels!
+    } // for each y,
+  } // for each x,
+  // On deeply nested loops, we summarize the level at its closest brace. :)
+  // Read from bottom up!
 
   (region_by_resel, resels_by_region)
 }
 
 /// Given a reselboard and the mapping between regions and resels,
-/// get the resel class at each region, plus dense class indices.
-/// (The dense class indices are used when running.)
+/// get the resel class at each region, plus dense per-class indices.
+/// (The dense class indices are used at runtime.)
+/// Outputs: class_by_region, wire_nodes, input_nodes, output_nodes, logic_nodes
 fn class_indices_from_reselboard_and_regions(
   reselboard: &Vec<Vec<Resel>>,
   region_by_resel: &Vec<Vec<usize>>,
@@ -269,6 +279,16 @@ fn class_indices_from_reselboard_and_regions(
     }
   }
 
+  /*
+  e.g.
+  class_by_region: [
+    Empty, WireOrangeOn, WireLimeOn, WireSapphireOff, Input, Output, AND, Input, Empty
+  ]
+  wire_nodes:      [1, 2, 3,]
+  input_nodes:     [4, 7,]
+  output_nodes:    [5,]
+  logic_nodes:     [6,]
+  */
   (class_by_region, wire_nodes, input_nodes, output_nodes, logic_nodes)
 }
 
@@ -337,125 +357,11 @@ struct ResoCircuit {
 }
 
 
-// 1. ResoCircuit struct, which is instantiated from a ReselBoard
-// 2. Simple mappings for region indices. (class_by_region, wire_nodes, etc.)
-// 3. With that done, adjacency mappings. (input_to_wire, etc.)
-// 4. Iteration loop. (see readme)
-// 5. Serialization, etc?
-impl ResoCircuit {
-  fn from_image(img: &DynamicImage) -> Self {
-    let reselboard = image_to_reselboard(img);
-    let (width, height) = (reselboard.len(), reselboard[0].len());
-
-    let (region_by_resel, resels_by_region) = resel_region_mapping_from_reselboard(
-      &reselboard
-    );
-
-    let (
-      class_by_region, wire_nodes, input_nodes, output_nodes, logic_nodes
-    ) = class_indices_from_reselboard_and_regions(
-      &reselboard, &region_by_resel, &resels_by_region
-    );
-
-    // TODO from here down
-
-    // map input_idx to adjacent regions
-    let input_adjacencies: Vec<Vec<usize>> = input_nodes.iter().map(
-      |&input_region_idx| {
-        get_adjacent_region_idxs(input_region_idx, &region_by_resel, &resels_by_region)
-      }
-    ).collect();
-
-    /*
-    input_idx_to_output_idx: Vec<Vec<usize>> = empty;
-
-    for each (input_local_ii, input_region_ii):
-      get adjacencies for input_region_ii
-      for each adjacent region,
-        check the class.
-        if it is an output node, we want to add it to input_idx_to_output_idx
-        note: we want to add the local index, not the region index
-        (we will need to find it thru `output_nodes`)
-      ( O(n) searchup could be made O(logn) by assuming 
-        class_indices_from_reselboard_and_regions is sorted first
-      )
-    */
-    let input_to_output = 
-
-    /*
-    let input_to_wire = input_adjacencies.iter().filter(
-      |adj_region_idx| {
-        vec![
-          Resel::WireOrangeOff, Resel::WireOrangeOn,
-          Resel::WireSapphireOff, Resel::WireSapphireOn,
-          Resel::WireLimeOff, Resel::WireLimeOn,
-        ].contains(&class_by_region[adj_region_idx])
-      }
-    ).collect();
-
-    let input_to_logic = &input_adjacencies.iter().filter(
-      |adj_region_idx| {
-        vec![Resel::AND, Resel::XOR].contains(&class_by_region[adj_region_idx])
-      }
-    ).collect();
-
-    let input_to_output = &input_adjacencies.iter().filter(
-      |&adj_region_idx| {
-        &class_by_region[*adj_region_idx] == Resel::Output;
-      }
-    ).collect();
-    */
-
-
-    let logic_to_output = vec![vec![0; 0]; 0];
-    let output_to_wire = vec![vec![0; 0]; 0];
-    let wire_state = vec![false; 0];
-    let logic_state = vec![false; 0];
-    let output_state = vec![false; 0];
-
-    ResoCircuit {
-      image: img.clone(),
-      reselboard: reselboard,
-      region_by_resel: region_by_resel,
-      resels_by_region: resels_by_region,
-      class_by_region: class_by_region,
-      wire_nodes: wire_nodes,
-      input_nodes: input_nodes,
-      output_nodes: output_nodes,
-      logic_nodes: logic_nodes,
-      input_to_wire: input_to_wire,
-      input_to_logic: input_to_logic,
-      input_to_output: input_to_output,
-      logic_to_output: logic_to_output,
-      output_to_wire: output_to_wire,
-      wire_state: wire_state,
-      logic_state: logic_state,
-      output_state: output_state,
-    }
-  }
-
-
-
-  //fn from_reselboard(&self, reselboard: &Vec<Vec<Resel>) -> Self {
-  //  let (width, height) = (reselboard.len(), reselboard[0].len());
-  //}
-
-  /*
-  fn from_image(img: &image::DynamicImage) -> Self {
-    let reselboard = image_to_reselboard(img);
-    Self::from_reselboard(&reselboard)
-  }
-
-  fn from_filename(filename: &str) -> Self {
-    let img = load_image_from_filename(filename);
-    Self::from_image(&img)
-  }
-  */
-}
-
 
 fn main() {
-  let img = load_image_from_filename("test.png");
+  let filename = "test.png";
+  let img = load_image_from_filename(filename);
+
   let (width, height) = img.dimensions();
   println!("Dimensions: {}x{}", width, height);
   println!("Reselboard: {:?}", image_to_reselboard(&img));
@@ -470,6 +376,7 @@ fn main() {
       &region_by_resel,
       &resels_by_region,
     );
+  /*
   println!("Class by region:\n{:?}", class_by_region);
   println!("Wire nodes:\n{:?}", wire_nodes);
   println!("Input nodes:\n{:?}", input_nodes);
@@ -487,5 +394,6 @@ fn main() {
       region_idx, &region_by_resel, &resels_by_region
     ).iter().map(|&idx| class_by_region[idx]).collect::<Vec<Resel>>());
   }
+  */
 
 }

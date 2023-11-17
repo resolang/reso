@@ -45,7 +45,7 @@ pub fn rgba_to_resel(pixel: Rgba<u8>) -> Resel {
   rgbas_to_resel(pixel[0], pixel[1], pixel[2], pixel[3])
 }
 
-/// Mapping of Resel class to RGBA value.
+/// Mapping of Resel class to RGBA value. 
 pub fn resel_to_rgba(resel: Resel) -> Rgba<u8> {
   match resel {
     Resel::WireOrangeOff   => Rgba([128,  64,   0, 255]),
@@ -127,6 +127,71 @@ pub fn is_resel_same_class(resel1: Resel, resel2: Resel) -> bool {
     (_, _) => { 
       // All other cases: Match true if resels are the same class
       resel1 == resel2
+    }
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn tests_work() {
+    assert!(true);
+  }
+
+  #[test]
+  fn test_convert_from_resel() {
+    for resel in [
+      Resel::WireOrangeOff,
+      Resel::WireOrangeOn,
+      Resel::WireSapphireOff,
+      Resel::WireSapphireOn,
+      Resel::WireLimeOff,
+      Resel::WireLimeOn,
+      Resel::AND,
+      Resel::XOR,
+      Resel::Input,
+      Resel::Output
+    ] {
+      let rgba = resel_to_rgba(resel);
+      assert_eq!(
+        rgbas_to_resel(rgba[0], rgba[1], rgba[2], rgba[3]),
+        resel
+      );
+      assert_eq!(rgba_to_resel(rgba), resel);
+      assert_eq!(
+        ascii_to_resel(resel_to_ascii(resel)),
+        resel
+      );
+    }
+  }
+
+  #[test]
+  fn test_convert_from_rgba() {
+    for raw_rgba in [
+      (128,  64,   0, 255),
+      (255, 128,   0, 255),
+      (  0,  64, 128, 255),
+      (  0, 128, 255, 255),
+      (64,  128,   0, 255),
+      (128, 255,   0, 255),
+      (  0, 128,  64, 255),
+      (  0, 255, 128, 255),
+      ( 64,   0, 128, 255),
+      (128,   0, 255, 255),
+    ] {
+      let (r, g, b, a) = raw_rgba;
+      let rgba = Rgba([r, g, b, a]);
+
+      assert_eq!(
+        resel_to_rgba(rgbas_to_resel(r,g,b,a)),
+        rgba
+      );
+      assert_eq!(
+        resel_to_rgba(rgba_to_resel(rgba)),
+        rgba
+      );
     }
   }
 }

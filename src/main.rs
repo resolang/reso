@@ -3,7 +3,6 @@ use image::{GenericImageView, ImageResult, ImageBuffer, Rgba, RgbaImage, Dynamic
 mod resel;
 use resel::{
   Resel,
-  rgbas_to_resel, rgba_to_resel, resel_to_rgba,
   image_to_reselboard, is_resel_same_class
 };
 

@@ -1,10 +1,10 @@
-use std::collections::HashMap;
-use image::{GenericImageView, ImageResult, ImageBuffer, Rgba, RgbaImage, DynamicImage};
+use image::{Rgba};
 
-/* TODO:
-- Impl idiomatic (RGB, &str)--Resel conversion
-- Tests
-- Docstrings
+/*
+Refactoring steps:
+- impl Resel.rgb, Resel.ascii,
+- impl Resel::from_rgba, Resel::from_ascii
+- impl 
 */
 
 /// Enum of all the classes a resel can have
@@ -23,93 +23,131 @@ pub enum Resel {
   Empty
 }
 
-/// Mapping of of (R, G, B, A)  to Resel class.
-pub fn rgbas_to_resel(r: u8, g: u8, b: u8, a: u8) -> Resel {
-  match (r, g, b, a) {
-    (128,  64,   0, 255) => Resel::WireOrangeOff,
-    (255, 128,   0, 255) => Resel::WireOrangeOn,
-    (  0,  64, 128, 255) => Resel::WireSapphireOff,
-    (  0, 128, 255, 255) => Resel::WireSapphireOn,
-    (64,  128,   0, 255) => Resel::WireLimeOff,
-    (128, 255,   0, 255) => Resel::WireLimeOn,
-    (  0, 128,  64, 255) => Resel::AND,
-    (  0, 255, 128, 255) => Resel::XOR,
-    ( 64,   0, 128, 255) => Resel::Input,
-    (128,   0, 255, 255) => Resel::Output,
-    _ => Resel::Empty,
-  }
-}
-
-/// Mapping of image::Rgba<u8> to Resel class. Convenience.
-pub fn rgba_to_resel(pixel: Rgba<u8>) -> Resel {
-  rgbas_to_resel(pixel[0], pixel[1], pixel[2], pixel[3])
-}
-
-/// Mapping of Resel class to RGBA value. 
-pub fn resel_to_rgba(resel: Resel) -> Rgba<u8> {
-  match resel {
-    Resel::WireOrangeOff   => Rgba([128,  64,   0, 255]),
-    Resel::WireOrangeOn    => Rgba([255, 128,   0, 255]),
-    Resel::WireSapphireOff => Rgba([  0,  64, 128, 255]),
-    Resel::WireSapphireOn  => Rgba([  0, 128, 255, 255]),
-    Resel::WireLimeOff     => Rgba([64,  128,   0, 255]),
-    Resel::WireLimeOn      => Rgba([128, 255,   0, 255]),
-    Resel::AND             => Rgba([  0, 128,  64, 255]),
-    Resel::XOR             => Rgba([  0, 255, 128, 255]),
-    Resel::Input           => Rgba([ 64,   0, 128, 255]),
-    Resel::Output          => Rgba([128,   0, 255, 255]),
-    Resel::Empty           => Rgba([0, 0, 0, 0])
-  }
-}
-
-// Map an rgba image to a 2D grid of Resels.
-pub fn image_to_reselboard(img: &DynamicImage) -> Vec<Vec<Resel>> {
-  let (width, height) = img.dimensions();
-  let mut reselboard = vec![vec![Resel::Empty; height as usize]; width as usize];
-  for x in 0..width {
-    for y in 0..height {
-      let pixel = img.get_pixel(x, y);
-      let resel = rgba_to_resel(pixel);
-      reselboard[x as usize][y as usize] = resel;
+// Convert (u8,u8,u8), Rgba<u8>, and &str char to Resel
+impl From<(u8, u8, u8)> for Resel {
+  fn from(rgb: (u8, u8, u8)) -> Self {
+    match rgb {
+      (128,  64,   0) => Resel::WireOrangeOff,
+      (255, 128,   0) => Resel::WireOrangeOn,
+      (  0,  64, 128) => Resel::WireSapphireOff,
+      (  0, 128, 255) => Resel::WireSapphireOn,
+      (64,  128,   0) => Resel::WireLimeOff,
+      (128, 255,   0) => Resel::WireLimeOn,
+      (  0, 128,  64) => Resel::AND,
+      (  0, 255, 128) => Resel::XOR,
+      ( 64,   0, 128) => Resel::Input,
+      (128,   0, 255) => Resel::Output,
+      _ => Resel::Empty,
     }
   }
-  reselboard
 }
 
-/// Unusued; for text-based reselboard.
-pub fn ascii_to_resel(c: char) -> Resel {
-  match c {
-    'o' => Resel::WireOrangeOff,
-    'O' => Resel::WireOrangeOn,
-    's' => Resel::WireSapphireOff,
-    'S' => Resel::WireSapphireOn,
-    'l' => Resel::WireLimeOff,
-    'L' => Resel::WireLimeOn,
-    '&' => Resel::AND,
-    '^' => Resel::XOR,
-    '+' => Resel::Input,
-    '=' => Resel::Output,
-    ' ' => Resel::Empty,
-    _ => Resel::Empty,
+impl From<Rgba<u8>> for Resel {
+  fn from(rgba: Rgba<u8>) -> Self {
+    match rgba {
+      Rgba([128,  64,   0, 255]) => Resel::WireOrangeOff,
+      Rgba([255, 128,   0, 255]) => Resel::WireOrangeOn,
+      Rgba([  0,  64, 128, 255]) => Resel::WireSapphireOff,
+      Rgba([  0, 128, 255, 255]) => Resel::WireSapphireOn,
+      Rgba([64,  128,   0, 255]) => Resel::WireLimeOff,
+      Rgba([128, 255,   0, 255]) => Resel::WireLimeOn,
+      Rgba([  0, 128,  64, 255]) => Resel::AND,
+      Rgba([  0, 255, 128, 255]) => Resel::XOR,
+      Rgba([ 64,   0, 128, 255]) => Resel::Input,
+      Rgba([128,   0, 255, 255]) => Resel::Output,
+      _ => Resel::Empty,
+    }
   }
 }
 
-/// Unusued; for text-based reselboard.
-pub fn resel_to_ascii(resel: Resel) -> char {
-  match resel {
-    Resel::WireOrangeOff   => 'o',
-    Resel::WireOrangeOn    => 'O',
-    Resel::WireSapphireOff => 's',
-    Resel::WireSapphireOn  => 'S',
-    Resel::WireLimeOff     => 'l',
-    Resel::WireLimeOn      => 'L',
-    Resel::AND             => '&',
-    Resel::XOR             => '^',
-    Resel::Input           => '+',
-    Resel::Output          => '=',
-    Resel::Empty           => ' ',
+impl From<&str> for Resel {
+  fn from(c: &str) -> Self {
+    match c {
+      "o" => Resel::WireOrangeOff  ,
+      "O" => Resel::WireOrangeOn   ,
+      "s" => Resel::WireSapphireOff,
+      "S" => Resel::WireSapphireOn ,
+      "l" => Resel::WireLimeOff    ,
+      "L" => Resel::WireLimeOn     ,
+      "&" => Resel::AND            ,
+      "^" => Resel::XOR            ,
+      "+" => Resel::Input          ,
+      "=" => Resel::Output         ,
+       _  => Resel::Empty          ,
+    }
   }
 }
+
+// Convert Resel to (u8,u8,u8), Rgba<u8>, and &str char
+impl From<Resel> for (u8, u8, u8) {
+  fn from(resel: Resel) -> Self {
+    match resel {
+      Resel::WireOrangeOff   => (128,  64,   0),
+      Resel::WireOrangeOn    => (255, 128,   0),
+      Resel::WireSapphireOff => (  0,  64, 128),
+      Resel::WireSapphireOn  => (  0, 128, 255),
+      Resel::WireLimeOff     => (64,  128,   0),
+      Resel::WireLimeOn      => (128, 255,   0),
+      Resel::AND             => (  0, 128,  64),
+      Resel::XOR             => (  0, 255, 128),
+      Resel::Input           => ( 64,   0, 128),
+      Resel::Output          => (128,   0, 255),
+      Resel::Empty           => (0,     0,   0)
+    }
+  }
+}
+
+impl From<Resel> for Rgba<u8> {
+  fn from(resel: Resel) -> Self {
+    match resel {
+      Resel::WireOrangeOff   => Rgba([128,  64,   0, 255]),
+      Resel::WireOrangeOn    => Rgba([255, 128,   0, 255]),
+      Resel::WireSapphireOff => Rgba([  0,  64, 128, 255]),
+      Resel::WireSapphireOn  => Rgba([  0, 128, 255, 255]),
+      Resel::WireLimeOff     => Rgba([64,  128,   0, 255]),
+      Resel::WireLimeOn      => Rgba([128, 255,   0, 255]),
+      Resel::AND             => Rgba([  0, 128,  64, 255]),
+      Resel::XOR             => Rgba([  0, 255, 128, 255]),
+      Resel::Input           => Rgba([ 64,   0, 128, 255]),
+      Resel::Output          => Rgba([128,   0, 255, 255]),
+      Resel::Empty           => Rgba([0,     0,   0, 255])
+    }
+  }
+}
+
+impl From<Resel> for &str {
+  fn from(resel: Resel) -> Self {
+    match resel {
+      Resel::WireOrangeOff   => "o",
+      Resel::WireOrangeOn    => "O",
+      Resel::WireSapphireOff => "s",
+      Resel::WireSapphireOn  => "S",
+      Resel::WireLimeOff     => "l",
+      Resel::WireLimeOn      => "L",
+      Resel::AND             => "&",
+      Resel::XOR             => "^",
+      Resel::Input           => "+",
+      Resel::Output          => "=",
+      Resel::Empty           => " ",
+    }
+  }
+}
+
+// Implementation TODO (Lynn! from here!)
+/*
+- rework `is_resel_same_class` as impl
+
+  - Better name for this concept?
+
+- `impl Eq`, or does Enum have it automatically?
+
+- Make reselboard.rs
+
+  - From/Into for &DynamicImage, Vec<Vec<Resel>>
+
+- Rewrite main.rs appropriately
+
+*/
 
 pub fn is_resel_same_class(resel1: Resel, resel2: Resel) -> bool {
   match (resel1, resel2) {
@@ -132,14 +170,40 @@ pub fn is_resel_same_class(resel1: Resel, resel2: Resel) -> bool {
 }
 
 #[cfg(test)]
-mod tests {
+mod resel_conversion_tests {
   use super::*;
 
   #[test]
-  fn tests_work() {
-    assert!(true);
-  }
+  fn test_convert_from_rgba() {
+    for (r, g, b) in [
+      (128,  64,   0),
+      (255, 128,   0),
+      (  0,  64, 128),
+      (  0, 128, 255),
+      (64,  128,   0),
+      (128, 255,   0),
+      (  0, 128,  64),
+      (  0, 255, 128),
+      ( 64,   0, 128),
+      (128,   0, 255),
+    ] {
+      // Instantiate Rgba, resel from (r,g,b,a)
+      let rgba = Rgba([r, g, b, 255]);
+      let resel_from_raw_rgb = Resel::from((r, g, b));
+      let resel_from_rgba    = Resel::from(rgba);
+      print!(".");
 
+      // ... And check it converts back correctly
+      assert_eq!(
+        (r, g, b),
+        resel_from_raw_rgb.into()
+      );
+      assert_eq!(
+        (r, g, b),
+        resel_from_rgba.into()
+      );
+    }
+  }
   #[test]
   fn test_convert_from_resel() {
     for resel in [
@@ -154,44 +218,31 @@ mod tests {
       Resel::Input,
       Resel::Output
     ] {
-      let rgba = resel_to_rgba(resel);
+      // Convert Resel to (u8,u8,u8), Rgba, and char and back
+      let (r, g, b): (u8, u8, u8) = resel.into();
+      let rgba:      Rgba<u8>     = resel.into();
+      let cc:        &str         = resel.into();
+
       assert_eq!(
-        rgbas_to_resel(rgba[0], rgba[1], rgba[2], rgba[3]),
+        Resel::from((r, g, b)),
         resel
       );
-      assert_eq!(rgba_to_resel(rgba), resel);
       assert_eq!(
-        ascii_to_resel(resel_to_ascii(resel)),
+        Resel::from(rgba),
+        resel
+      );
+      assert_eq!(
+        Resel::from(cc),
         resel
       );
     }
   }
-
-  #[test]
-  fn test_convert_from_rgba() {
-    for raw_rgba in [
-      (128,  64,   0, 255),
-      (255, 128,   0, 255),
-      (  0,  64, 128, 255),
-      (  0, 128, 255, 255),
-      (64,  128,   0, 255),
-      (128, 255,   0, 255),
-      (  0, 128,  64, 255),
-      (  0, 255, 128, 255),
-      ( 64,   0, 128, 255),
-      (128,   0, 255, 255),
-    ] {
-      let (r, g, b, a) = raw_rgba;
-      let rgba = Rgba([r, g, b, a]);
-
-      assert_eq!(
-        resel_to_rgba(rgbas_to_resel(r,g,b,a)),
-        rgba
-      );
-      assert_eq!(
-        resel_to_rgba(rgba_to_resel(rgba)),
-        rgba
-      );
-    }
-  }
+  
 }
+
+/*
+#[cfg(test)]
+mod more_tests {
+  #[test]
+}
+*/

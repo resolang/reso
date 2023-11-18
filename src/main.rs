@@ -1,3 +1,9 @@
+mod resel;
+//use resel::{Resel};
+fn main() {
+  println!("hello world")
+}
+/*
 use std::collections::HashMap;
 use image::{GenericImageView, ImageResult, ImageBuffer, Rgba, RgbaImage, DynamicImage};
 mod resel;
@@ -279,3 +285,5 @@ fn main() {
   */
 
 }
+
+*/

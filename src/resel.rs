@@ -2,6 +2,11 @@
 resel.rs
 
 A "resel" is a "reso pixel". A resel can be converted to/from an (R,G,B) or a character
+
+TODO:
+
+- palettes (arrays) of Resel, Rgba, (u8,u8,u8), and char
+- six pairwise tests for these palettes 
 */
 use image::{Rgba};
 
@@ -21,6 +26,62 @@ pub enum Resel {
   Empty
 }
 
+pub const PALETTE_RESEL: [Resel; 11] = [
+  Resel::WireOrangeOff,
+  Resel::WireOrangeOn,
+  Resel::WireSapphireOff,
+  Resel::WireSapphireOn,
+  Resel::WireLimeOff,
+  Resel::WireLimeOn,
+  Resel::AND,
+  Resel::XOR, 
+  Resel::Input,
+  Resel::Output,
+  Resel::Empty
+];
+
+pub const PALETTE_U8U8U8: [(u8,u8,u8); 11] = [
+  (128,  64,   0),
+  (255, 128,   0),
+  (  0,  64, 128),
+  (  0, 128, 255),
+  (64,  128,   0),
+  (128, 255,   0),
+  (  0, 128,  64),
+  (  0, 255, 128),
+  ( 64,   0, 128),
+  (128,   0, 255),
+  (0,     0,   0)
+];
+
+pub const PALETTE_RGBA: [(Rgba<u8>); 11] = [
+  Rgba([128,  64,   0, 255]),
+  Rgba([255, 128,   0, 255]),
+  Rgba([  0,  64, 128, 255]),
+  Rgba([  0, 128, 255, 255]),
+  Rgba([64,  128,   0, 255]),
+  Rgba([128, 255,   0, 255]),
+  Rgba([  0, 128,  64, 255]),
+  Rgba([  0, 255, 128, 255]),
+  Rgba([ 64,   0, 128, 255]),
+  Rgba([128,   0, 255, 255]),
+  Rgba([0,     0,   0, 255])
+];
+
+pub const PALETTE_STR: [&str; 11] = [
+  "o",
+  "O",
+  "s",
+  "S",
+  "l",
+  "L",
+  "&",
+  "^",
+  "+",
+  "=",
+  " ",
+];
+
 // Convert (u8,u8,u8), Rgba<u8>, and &str char to Resel
 impl From<(u8, u8, u8)> for Resel {
   fn from(rgb: (u8, u8, u8)) -> Self {
@@ -35,7 +96,7 @@ impl From<(u8, u8, u8)> for Resel {
       (  0, 255, 128) => Resel::XOR,
       ( 64,   0, 128) => Resel::Input,
       (128,   0, 255) => Resel::Output,
-      _ => Resel::Empty,
+      _               => Resel::Empty,
     }
   }
 }

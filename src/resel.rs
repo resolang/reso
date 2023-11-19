@@ -1,11 +1,9 @@
-use image::{Rgba};
-
 /*
-Refactoring steps:
-- impl Resel.rgb, Resel.ascii,
-- impl Resel::from_rgba, Resel::from_ascii
-- impl 
+resel.rs
+
+A "resel" is a "reso pixel". A resel can be converted to/from an (R,G,B) or a character
 */
+use image::{Rgba};
 
 /// Enum of all the classes a resel can have
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -133,41 +131,54 @@ impl From<Resel> for &str {
   }
 }
 
-// Implementation TODO (Lynn! from here!)
-/*
-- rework `is_resel_same_class` as impl
-
-  - Better name for this concept?
-
-- `impl Eq`, or does Enum have it automatically?
-
-- Make reselboard.rs
-
-  - From/Into for &DynamicImage, Vec<Vec<Resel>>
-
-- Rewrite main.rs appropriately
-
-*/
-
-pub fn is_resel_same_class(resel1: Resel, resel2: Resel) -> bool {
-  match (resel1, resel2) {
-    // Handle wire special cases
-    // there has to be a better way to do this
-    ( Resel::WireOrangeOff | Resel::WireOrangeOn,
-      Resel::WireOrangeOn  | Resel::WireOrangeOff
-    ) | (
-      Resel::WireSapphireOff | Resel::WireSapphireOn,
-      Resel::WireSapphireOn  | Resel::WireSapphireOff
-    ) | (
-      Resel::WireLimeOff | Resel::WireLimeOn,
-      Resel::WireLimeOn | Resel::WireLimeOff
-    ) => { true },
-    (_, _) => { 
-      // All other cases: Match true if resels are the same class
-      resel1 == resel2
+impl Resel {
+  pub fn same(self, other: Resel) -> bool {
+    // Used when checking adjacent regions.
+    // (Adjacent wires, e.g. OOOooo, compile to the same wire OOOOOO)
+    match (self, other) {
+      ( Resel::WireOrangeOff | Resel::WireOrangeOn,
+        Resel::WireOrangeOn  | Resel::WireOrangeOff
+      ) | (
+        Resel::WireSapphireOff | Resel::WireSapphireOn,
+        Resel::WireSapphireOn  | Resel::WireSapphireOff
+      ) | (
+        Resel::WireLimeOff | Resel::WireLimeOn,
+        Resel::WireLimeOn | Resel::WireLimeOff
+      ) => { true },
+      (_, _) => { 
+        // All other cases: Match true if resels are equal
+        self == other
+      }
     }
   }
+  /*
+  // unused
+  pub fn is_wire(&self) -> bool {
+    match self {
+      Resel::WireOrangeOff | Resel::WireOrangeOn |
+      Resel::WireSapphireOff | Resel::WireSapphireOn |
+      Resel::WireLimeOff | Resel::WireLimeOn => true,
+      _ => false
+    }
+  }
+
+  pub fn is_logic(&self) -> bool {
+    match self {
+      Resel::AND | Resel::XOR => true,
+      _ => false
+    }
+  }
+
+  pub fn is_io(&self) -> bool {
+    match self {
+      Resel::Input | Resel::Output => true,
+      _ => false
+    }
+  }
+  */
 }
+
+
 
 #[cfg(test)]
 mod resel_conversion_tests {
@@ -238,6 +249,34 @@ mod resel_conversion_tests {
     }
   }
   
+  #[test]
+  fn test_same() {
+    for (resel1, resel2) in [
+      (Resel::WireOrangeOff, Resel::WireOrangeOn),
+      (Resel::WireSapphireOff, Resel::WireSapphireOn),
+      (Resel::WireLimeOff, Resel::WireLimeOn)
+    ] {
+      assert!(resel1.same(resel1));
+      assert!(resel1.same(resel2));
+      assert!(resel2.same(resel1));
+      assert!(resel2.same(resel2));
+    }
+
+    for resel in [
+      Resel::WireOrangeOff,
+      Resel::WireOrangeOn,
+      Resel::WireSapphireOff,
+      Resel::WireSapphireOn,
+      Resel::WireLimeOff,
+      Resel::WireLimeOn,
+      Resel::AND,
+      Resel::XOR,
+      Resel::Input,
+      Resel::Output
+    ] {
+      assert!(resel.same(resel));
+    }
+  }
 }
 
 /*

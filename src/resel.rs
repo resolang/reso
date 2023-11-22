@@ -26,6 +26,7 @@ pub enum Resel {
   Empty
 }
 
+// Palette constants-- should be kept in same order as one another
 pub const PALETTE_RESEL: [Resel; 11] = [
   Resel::WireOrangeOff,
   Resel::WireOrangeOn,
@@ -54,7 +55,7 @@ pub const PALETTE_U8U8U8: [(u8,u8,u8); 11] = [
   (0,     0,   0)
 ];
 
-pub const PALETTE_RGBA: [(Rgba<u8>); 11] = [
+pub const PALETTE_RGBA: [Rgba<u8>; 11] = [
   Rgba([128,  64,   0, 255]),
   Rgba([255, 128,   0, 255]),
   Rgba([  0,  64, 128, 255]),
@@ -239,26 +240,65 @@ impl Resel {
   */
 }
 
-
-
 #[cfg(test)]
 mod resel_conversion_tests {
   use super::*;
 
   #[test]
-  fn test_convert_from_rgba() {
-    for (r, g, b) in [
-      (128,  64,   0),
-      (255, 128,   0),
-      (  0,  64, 128),
-      (  0, 128, 255),
-      (64,  128,   0),
-      (128, 255,   0),
-      (  0, 128,  64),
-      (  0, 255, 128),
-      ( 64,   0, 128),
-      (128,   0, 255),
-    ] {
+  fn test_palettes() {
+    // this test probably makes a lot of the below redundant
+
+    // assert each same length
+    assert_eq!(
+      PALETTE_RESEL.len(), PALETTE_U8U8U8.len()
+    );
+    assert_eq!(
+      PALETTE_RESEL.len(), PALETTE_RGBA.len()
+    );
+    assert_eq!(
+      PALETTE_RESEL.len(), PALETTE_STR.len()
+    );
+
+    // assert equal
+    for idx in 1..PALETTE_RESEL.len() {
+      let resel  = PALETTE_RESEL[idx];
+      let u8u8u8 = PALETTE_U8U8U8[idx];
+      let rgba   = PALETTE_RGBA[idx];
+      let cc     = PALETTE_STR[idx];
+
+      // test resel == resel::from(x)
+      assert_eq!(
+        resel,
+        Resel::from(u8u8u8)
+      );
+      assert_eq!(
+        resel,
+        Resel::from(rgba)
+      );
+      assert_eq!(
+        resel,
+        Resel::from(cc)
+      );
+
+      // test x == resel.into()
+      assert_eq!(
+        u8u8u8,
+        <(u8,u8,u8)>::from(resel)
+      );
+      assert_eq!(
+        rgba,
+        <Rgba<u8>>::from(resel)
+      );
+      assert_eq!(
+        cc,
+        <&str>::from(resel)
+      );
+    }
+  }
+
+  #[test]
+  fn test_convert_from_u8u8u8() {
+    for (r, g, b) in PALETTE_U8U8U8 {
       // Instantiate Rgba, resel from (r,g,b,a)
       let rgba = Rgba([r, g, b, 255]);
       let resel_from_raw_rgb = Resel::from((r, g, b));

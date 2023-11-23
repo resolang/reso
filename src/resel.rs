@@ -1,12 +1,15 @@
 /*
 resel.rs
 
-A "resel" is a "reso pixel". A resel can be converted to/from an (R,G,B) or a character
+A "resel" is a "reso pixel". This is essentially a mapping of pixels/chars to Resel enum.
+E.g. Resel::WireOrangeOn can be represented by a (#FF8000) pixel or an "O" ASCII.
 
-TODO:
+A ReselBoard is essentially a Vec<Vec<Resel>>, compiles a Reso Circuit.
+A Reso Circuit is the executable part of Reso, and is built of Reso elements.
+A ResoCircuit (optionally, recommended) keeps a ResoBoard around, such as for rendering.
 
-- palettes (arrays) of Resel, Rgba, (u8,u8,u8), and char
-- six pairwise tests for these palettes 
+
+A resel can be converted to/from an (R,G,B) or a character
 */
 use image::{Rgba};
 
@@ -26,7 +29,7 @@ pub enum Resel {
   Empty
 }
 
-// Palette constants-- should be kept in same order as one another
+// Palette constants-- must be kept in same order as one another
 pub const PALETTE_RESEL: [Resel; 11] = [
   Resel::WireOrangeOff,
   Resel::WireOrangeOn,

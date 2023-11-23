@@ -79,7 +79,7 @@ TLDR:
 | Pixel | A three-byte RGB value at a given `x,y` position in a bitmap.
 | Bitmap | A grid of pixels with a given `width, height`. Reso programs can be defined by bitmaps.
 | **Resels** | |
-| Resel | A Reso element with a class at a given `x,y` position in a Resel board.
+| Resel | A Reso pixel with a class, has a given `x,y` position in a Resel board.
 | Class | One of 11 values defining the functionality of a region.
 | Resel board | A grid of resels with a given `width, height`. Reso programs can be defined by such a board.
 | **Circuits** | |

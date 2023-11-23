@@ -1,6 +1,22 @@
-/*
-todo
-impl From<&DynamicImage> for Resel {
+/* reselboard.rs
+
+TODOs:
+- Load from .txt, image filename
+- Tests
+- Then region mapping
+*/
+
+mod resel;
+use resel::Resel;
+use image::{Rgba, DynamicImage};
+
+struct ReselBoard {
+  board: Vec<Vec<Resel>>,
+  image: &DynamicImage,
+}
+
+// Instantiate Vec<Vec<Resel>> 
+impl From<&DynamicImage> for Vec<Vec<Resel>> {
   fn from(img: &DynamicImage) -> Vec<Vec<Resel>> {
     let (width, height) = img.dimensions();
     let mut reselboard = vec![vec![Resel::Empty; height as usize]; width as usize];
@@ -14,4 +30,17 @@ impl From<&DynamicImage> for Resel {
     reselboard
   }
 }
+
+#[cfg(test)]
+mod reselboard_conversion_tests {
+
+}
+
+
+/*
+ReselBoard: Vec<Vec<Resel>>
+
+Also:
+- Stores regions 
+
 */

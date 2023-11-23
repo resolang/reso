@@ -4,8 +4,8 @@ resel.rs
 A "resel" is a "reso pixel". This is essentially a mapping of pixels/chars to Resel enum.
 E.g. Resel::WireOrangeOn can be represented by a (#FF8000) pixel or an "O" ASCII.
 
-A ReselBoard is essentially a Vec<Vec<Resel>>, compiles a Reso Circuit.
-A Reso Circuit is the executable part of Reso, and is built of Reso elements.
+A ReselBoard is just a Vec<Vec<Resel>>, compiles a Reso Circuit.
+A Reso Circuit is the executable part of Reso, and is built from Reso nodes.
 A ResoCircuit (optionally, recommended) keeps a ResoBoard around, such as for rendering.
 
 
@@ -196,7 +196,12 @@ impl From<Resel> for &str {
   }
 }
 
+
+
+
+// Resel methods: resel.same(other)
 impl Resel {
+  // Unlike eq, ignore wire state. e.g. WireOrangeOn == WireOrangeOff
   pub fn same(self, other: Resel) -> bool {
     // Used when checking adjacent regions.
     // (Adjacent wires, e.g. OOOooo, compile to the same wire OOOOOO)
@@ -382,6 +387,7 @@ mod resel_conversion_tests {
     }
   }
 }
+
 
 /*
 #[cfg(test)]

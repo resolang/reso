@@ -1,14 +1,5 @@
-/* reselboard.rs
-
-TODOs:
-- Load from .txt, image filename
-- Tests!
-- Then region mapping 
-*/
-
 use crate::resel::{Resel};
-use image::{DynamicImage, GenericImageView};
-
+use image::{Rgba, DynamicImage, GenericImageView};
 
 struct ReselBoard {
   board: Vec<Vec<Resel>>,
@@ -37,10 +28,8 @@ pub fn image_to_vecvecresel(img: &DynamicImage) -> Vec<Vec<Resel>> {
   reselboard
 }
 
-
-
 #[cfg(test)]
-mod load_image_tests {
+mod reselboard_tests {
   use super::*;
   #[test]
   fn load_image_doesnt_exist() {
@@ -50,24 +39,37 @@ mod load_image_tests {
 
   #[test]
   fn load_image_does_exist() {
-    assert!(load_image_from_filename("./src/testing/test_01.png").is_some())
+    assert!(load_image_from_filename("./src/testing/test_01_new-palette.png").is_some())
   }
 
   #[test]
-  fn load_image_test() {
-    // Test pixels on loaded test images
+  fn load_and_convert_image_test_01() {
+    let img = load_image_from_filename("./src/testing/test_01_new-palette.png").unwrap();
+    let board = image_to_vecvecresel(&img);
+
+    for ((x, y), resel) in [
+      ((0,0), Resel::WireOrangeOn),
+      ((1,0), Resel::Input),
+      ((2,0), Resel::Empty),
+      ((0,1), Resel::WireLimeOn),
+      ((1,1), Resel::WireOrangeOn),
+      ((2,1), Resel::Input),
+      ((0,2), Resel::WireSapphireOff),
+      ((1,2), Resel::WireSapphireOff),
+      ((2,2), Resel::WireSapphireOff),
+      ((0,3), Resel::Empty),
+    ] {
+      // Assert pixel-to-resel == resel
+      assert_eq!(Resel::from(img.get_pixel(x,y)), resel);
+      if resel != Resel::Empty {
+        // Assert resel-to-pixel == pixel
+        // Ignore empty, because empty-to-pixel has many possibilities
+        assert_eq!(img.get_pixel(x,y), <Rgba<u8>>::from(resel));
+      }
+
+      // Also check the board conversion is correct
+      assert_eq!(board[x as usize][y as usize], resel)
+    }
   }
+
 }
-
-#[cfg(test)]
-mod reselboard_conversion_tests {
-}
-
-
-/*
-ReselBoard: Vec<Vec<Resel>>
-
-Also:
-- Stores regions 
-
-*/

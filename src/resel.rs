@@ -196,9 +196,6 @@ impl From<Resel> for &str {
   }
 }
 
-
-
-
 // Resel methods: resel.same(other)
 impl Resel {
   // Unlike eq, ignore wire state. e.g. WireOrangeOn == WireOrangeOff

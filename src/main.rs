@@ -1,12 +1,6 @@
 mod resel;
 mod reselboard;
 
-//use resel::{Resel};
-
-fn main() {
-  println!("hello world")
-}
-
 /*
 use std::collections::HashMap;
 use image::{GenericImageView, ImageResult, ImageBuffer, Rgba, RgbaImage, DynamicImage};
@@ -16,17 +10,13 @@ use resel::{
   image_to_reselboard, is_resel_same_class
 };
 
+*/
 
-/// Return image::DynamicImage given filename
-fn load_image_from_filename(filename: &str) -> DynamicImage {
-  let img = image::open(filename).expect("File not found, sorry!");
-  let (width, height) = img.dimensions();
-  println!("Loaded {} ({}x{} px).", &filename, width, height);
-  img
+fn main() {
+  println!("hello world")
 }
 
-// TODO FROM HERE DOWN: Rework this function so that it does not yield duplicates
-
+/*
 /// Given a reselboard, find and index regions of adjacent elements.
 /// Returns tuple (region_by_resel[x][y]->i, resels_by_region[i]->[(x,y), ...])
 fn resel_region_mapping_from_reselboard(

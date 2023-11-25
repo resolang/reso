@@ -218,13 +218,12 @@ impl Resel {
       }
     }
   }
-  /*
-  // unused
+
   pub fn is_wire(&self) -> bool {
     match self {
-      Resel::WireOrangeOff | Resel::WireOrangeOn |
+      Resel::WireOrangeOff   | Resel::WireOrangeOn |
       Resel::WireSapphireOff | Resel::WireSapphireOn |
-      Resel::WireLimeOff | Resel::WireLimeOn => true,
+      Resel::WireLimeOff     | Resel::WireLimeOn => true,
       _ => false
     }
   }
@@ -242,7 +241,8 @@ impl Resel {
       _ => false
     }
   }
-  */
+
+  
 }
 
 #[cfg(test)]

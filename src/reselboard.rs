@@ -29,38 +29,63 @@ pub fn image_to_vecvecresel(img: &DynamicImage) -> Vec<Vec<Resel>> {
 }
 
 
-pub fn neighborhood(resel: Resel, x: usize, y: usize, width: usize, height: usize) -> Vec<(usize, usize)> {
-  // Given resel class + x,y + width,height, get the neighborhood of Resels from it
-
-  // Todo: 
-  // 1. Rename
-  // 2. Refactor: Create `impl Resel { pub fn neighbor_deltas() -> (isize, isize)`
-  // 3. Refactor: Create separate func for `map`? `deltas_to_absolute_neighbors`
-  // 4. Fix?: Can overflow for huge x/y/width/height, or processors with very small usize/isize
-  // 5. Continue! Complete our Region Mapper
-
-  match resel {
-    (
-      Resel::WireOrangeOff   | Resel::WireOrangeOn   |
-      Resel::WireSapphireOff | Resel::WireSapphireOn |
-      Resel::WireLimeOff     | Resel::WireLimeOn
-    ) => vec![
-      (1,0), (1,1), (0,1), (-1,1), (-1,0), (-1,-1), (0,-1), (1,-1)
-    ],
-    (
-      Resel::AND | Resel::XOR | Resel::Input | Resel::Output
-    ) => vec![(1,0), (0,1), (-1,0), (0,-1)],
-    _ => vec![]
-  }
-  .into_iter()
-  .map(|(dx, dy)| 
-    (
-        ((x as isize + dx + width as isize) as usize % width),
-        ((y as isize + dy + height as isize) as usize % height),
+// delta_to_neighbor(x, y, dx, dy, width, height, wrap)
+// returns Some (x+dx, y+dy), None if out of bounds
+fn delta_to_neighbor(
+  x: usize, y: usize,
+  dx: isize, dy: isize,
+  width: usize, height: usize,
+  wrap: bool
+) -> Option<(usize, usize)> {
+  // todo: handle overflows, write tests
+  let ax = x as isize + dx;
+  let ay = y as isize + dy;
+  if wrap { // wrap: No "out-of-bounds" to consider, just return (x+dx)%width
+    Some(
+      (
+        ((ax + width as isize) as usize % width),
+        ((ay + height as isize) as usize % height),
+      )
     )
-  )
-  .collect()
+  } else { // No wrap; check (ax,ay) within bounds
+    if ( // Check bounds
+      (ax > width as isize) || (ax < 0) || (ay > height as isize) || (ay < 0)
+    ) { // Out of bounds, return None
+      None
+    } else { // Within bounds, just return (ax, ay)
+      Some((ax as usize, ay as usize))
+    }
+  }
 }
+
+pub fn get_neighbors(
+  resel: Resel, x: usize, y: usize, width: usize, height: usize
+) -> Vec<(usize, usize)> {
+  // Given resel class + x,y + width,height, get the neighborhood of (x,y) coordinates
+
+  resel.delta_neighbors()
+    .into_iter()
+    .filter_map(|(dx, dy)| delta_to_neighbor(x, y, dx, dy, width, height, true))
+    .collect()
+}
+
+  // Todo! 2023-Nov-25
+  // Last thing you did was make this function
+  // 1. ~~Rename
+  // 2. ~~Refactor: Create `impl Resel { pub fn neighbor_deltas() -> (isize, isize)`~~
+  // 3. ~~Refactor map:
+  //    deltas_to_absolute_neighbors(
+  //      deltas: Vec<(isize, isize)>,
+  //      x: usize, y: usize,
+  //      width: usize, height: usize,
+  //      wrap: bool
+  // )
+  // 4. Test delta_to_neighbor
+  // 5. Test get_neighbors
+  // 6. Rework into `impl reselboard`?
+  // 7. delta_to_neighbor: Handle integer overflows 
+  // 8. Continue! Complete our Region Mapper!
+
 
 fn region_map_from_reselboard(
   board: &Vec<Vec<Resel>>
@@ -92,7 +117,7 @@ fn region_map_from_reselboard(
         visited[x][y] = true;
         
         /* for dx, dy in neighborhood:
-        todo!
+        todo! 
         if board[x][y].same(color) && !visited[x][y] {
 
         }
@@ -240,5 +265,31 @@ mod reselboard_tests {
       assert_eq!(board[x as usize][y as usize], resel)
     }
   }
+
+  #[test]
+
+  fn test_delta_to_neighbor() {
+    /*
+    fn delta_to_neighbor(
+      x: usize, y: usize,
+      dx: isize, dy: isize,
+      width: usize, height: usize,
+      wrap: bool
+    )
+    // todo
+    */
+
+    for (x, y, dx, dy, width, height, wrap, expected) in [
+      (0, 0, 0, 0, 1, 1, true, Some((0, 0))),
+      // TODO! Write more here
+    ] {
+      assert_eq!(
+        delta_to_neighbor(x,y,dx,dy,width,height,wrap),
+        expected
+      )
+    }
+  }
+
+  
 
 }

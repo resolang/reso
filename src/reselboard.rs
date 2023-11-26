@@ -69,14 +69,6 @@ pub fn get_neighbors(
     .collect()
 }
 
-// Todo! 2023-Nov-26
-// 1. Continue! Complete our Region Mapper!
-// 2. Region Mapper tests
-// 3. Rework into `impl reselboard`?
-// 4. Enforce grid shape somehow?
-// 5. Also record dense class indices (wire, input, output, logic)?
-// 6. Go back and use magic ? to handle overflows?
-
 /// Given a reselboard, find and index regions of adjacent elements.
 /// Returns tuple (xy_to_region[x][y]->i, region_to_xys[i]->[(x,y), ...])
 fn region_map_from_reselboard(
@@ -120,100 +112,6 @@ fn region_map_from_reselboard(
   }}} // for each x, y, if unvisited,
   (xy_to_region, region_to_xys)
 }
-
-/*
-fn resel_region_mapping_from_reselboard(
-  reselboard: &Vec<Vec<Resel>>
-) -> (Vec<Vec<usize>>, Vec<Vec<(usize, usize)>>) {
-  // Returns xy_to_region, region_to_xys
-  // possible runtime error if called with empty reselboard,
-  // or reselboard with a column that is too short
-  let (width, height) = (reselboard.len(), reselboard[0].len());
-  let mut visited:       Vec<Vec<bool>>  = vec![vec![false; height as usize]; width as usize];
-  let mut region_idx:    usize = 0;
-  let mut xy_to_region:  Vec<Vec<usize>> = vec![vec![0; height as usize]; width as usize];
-  let mut region_to_xys: Vec<Vec<(usize, usize)>> = vec![Vec::new()];
-
-  // region_to_xys[0] empty-- we index regions starting with 1.
-  // 'xy_to_region[x][y] = 0' means [x][y] doesn't have a region assignment
-  region_to_xys.push(Vec::new());
-
-  for x in 0..width {
-    for y in 0..height {
-      if visited[x][y] {
-        // Already visited; pass
-      } else if reselboard[x][y] == Resel::Empty {
-        // Empty can not be a region. No other work to do here
-        visited[x][y] = true
-      } else {
-        // Unvisited Resel marks a new region!
-        // Update our region count, and prepare to mark new resels.
-        // (Per above, region_idx 0 skipped so region_to_xys[0] stays empty.)
-        // (On first loop, region_idx == 1, region_to_xys.len() == 2)
-        region_idx += 1;
-        region_to_xys.push(Vec::new());
-
-        // Explore neighbors one-by-one, starting with our first resel at (x,y)
-        let mut neighbors: Vec<(usize, usize)> = Vec::new();        
-        neighbors.push((x, y));
-
-        // `neighbors` is only empty once all regions have been explored.
-        while !neighbors.is_empty() {
-          let (x, y) = neighbors.pop().unwrap();
-          // visiting a new resel!
-          xy_to_region[x][y] = region_idx;
-          region_to_xys[region_idx].push((x,y));
-          visited[x][y] = true;
-          // todo: should visited be set even if a resel neighbor is not of the same class?
-          // as i read this, i think this is wrong, but the printed results are correct...
-          // ... perhaps this is my food-addled brain simply not understanding things :)
-
-          // Check contiguity to add neighbors in direction (dx, dy)
-          for (dx, dy) in {
-            // contiguity is orthogonal. wires can also be diagonally orthogonal
-            if [
-              Resel::WireOrangeOff,   Resel::WireOrangeOn,
-              Resel::WireSapphireOff, Resel::WireSapphireOn,
-              Resel::WireLimeOff,     Resel::WireLimeOn
-            ].contains(&reselboard[x][y]) {
-              // then iterate over diagonal and orthogonal neighbors
-              [(1, 0),  (0, height-1), (width-1, 0),  (0, 1),
-               (1, height-1), (width-1, height-1), (width-1,1), (1,1),
-              ]
-            } else if [
-              Resel::AND, Resel::XOR, Resel::Input, Resel::Output
-            ].contains(&reselboard[x][y]) {
-              // then iterate over Orthogonal neighbors only. (dx,dy = 0,0 is skipped below.)
-              [(1,0), (0,height-1), (width-1, 0), (0, 1), (0,0), (0,0), (0,0), (0,0)]
-            } else { // No neighbors, dead case.
-              [(0,0), (0,0), (0,0), (0,0), (0,0), (0,0), (0,0), (0,0)]
-            }
-          }.iter() { // for (dx, dy) in ..neighbors to check.. {
-            // Check if neighbor is not already visited, and is not the originating pixel
-            //println!("({},{}) Checking neighbor ({}, {})", x, y, (x + dx) % width, (y + dy)%height);
-            if (
-              (*dx != 0 || *dy != 0)
-              && !visited[(x + dx) % width][(y + dy)%height]
-              && is_resel_same_class(
-                reselboard[x][y],
-                reselboard[(x + dx) % width][(y + dy)%height]
-              )
-           ) {
-              neighbors.push(((x + dx) % width, (y + dy)%height));
-            } else {
-              // neighbor coord is invalid, nothing to do!
-              //println!("  ... {} {} {}", *dx != 0, *dy != 0, !visited[(x + dx) % width][(y + dy)%height]);
-            } // If the same class, add to neighbors and mark as visited :)
-          } // loop which checks adjacent resels for contiguity.
-        } // loop over adjacent resels, updating xy_to_region and region_to_xys
-      } // consider resel. If unvisited, it's a new region, so look for adjacent resels!
-    } // for each x, y, if unvisited,
-  } 
-  // Read from bottom up!
-
-  (xy_to_region, region_to_xys)
-}
-*/
 
 #[cfg(test)]
 mod reselboard_tests {
@@ -324,9 +222,7 @@ mod reselboard_tests {
   fn test_get_neighbors() {
     // get_neighbors(resel: Resel, x: usize, y: usize, width: usize, height: usize) -> Vec<(usize, usize)>
     for (resel, x, y, width, height, neighbors) in [
-      // todo
       (Resel::Empty, 0, 0, 1, 1, Vec::<(usize, usize)>::new()),
-      // TODO
       // Test non-wire neighborhoods within bounds
       (Resel::AND, 4, 4, 10, 10, vec![(4,5), (5,4), (3,4), (4,3)]),
       // Test wire neighborhoods within bounds
@@ -343,13 +239,56 @@ mod reselboard_tests {
   }
   
   #[test]
-
   fn test_regon_map_basic() {
-    // fn region_map_from_reselboard(board: &Vec<Vec<Resel>>)
-    //    -> (Vec<Vec<usize>>, Vec<Vec<(usize, usize)>>)
-    /*
-    TODO: how to test without ensured order?
-    */
+    for board in [
+      vec![vec![Resel::Empty]],
+    ] {
+
+      let (xy_to_region, region_to_xys) = region_map_from_reselboard(&board);
+      // Can't guarantee same structure of `expected`
+      // Instead test:
+      // 1. Same:    Each region has all the .same() colors
+      // 2. Account: Each `xy` is accounted for exactly once across `region_to_xys`
+      // 3 ... 
+  
+      let (width, height) = (board.len(), board[0].len());
+      let mut accounted:       Vec<Vec<bool>>  = vec![vec![false; height as usize]; width as usize];
+
+      for region_idx in 0..region_to_xys.len() {
+        // Check that all board[x][y] are the same for all region_to_xys[region_idx]
+        // using `iter()`, etc
+        region_color = 
+        /*
+        assert!(
+          region_to_xys[region_idx]
+          .iter()
+          .all(|(x, y)| board[*x][*y].same(board[region_to_xys[region_idx][0].0][region_to_xys[region_idx][0].1])));
+
+
+        for (x, y) in &region_to_xys[region_idx] {
+          // 
+          
+          
+          // Accounting: Each `x,y` must be accounted for exactly once
+          assert!(!accounted[*x][*y]);
+          accounted[*x][*y] = true;
+
+        }
+        */
+      }
+    }    
   }
 
 }
+
+/*
+TODOs:
+- Basic tests for RegionMapper
+- Test RegionMapper against expected values
+- Rework into `impl reselboard`?
+- Enforce Vec<Vec<Resel>> grid shape / fail if it doesn't have it?
+- RegionMapper: Also report:
+  - Dense class indices (wire_regions, input_regions, output_regions, logic_regions)
+  - region_to_resel
+- Go back and use magic ? to handle overflows?
+*/

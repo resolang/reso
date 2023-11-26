@@ -57,6 +57,7 @@ fn delta_to_neighbor(
   }
 }
 
+// get_neighbors(resel, x, y, width, height) -> convenient list of coordinates
 pub fn get_neighbors(
   resel: Resel, x: usize, y: usize, width: usize, height: usize
 ) -> Vec<(usize, usize)> {
@@ -71,28 +72,33 @@ pub fn get_neighbors(
 // Todo! 2023-Nov-26
 // 1. Continue! Complete our Region Mapper!
 // 2. Region Mapper tests
-// 3. Almost there...
-// 4. Rework into `impl reselboard`?
+// 3. Rework into `impl reselboard`?
+// 4. Enforce grid shape somehow?
+// 5. Also record dense class indices (wire, input, output, logic)?
+// 6. Go back and use magic ? to handle overflows?
 
-/*
+/// Given a reselboard, find and index regions of adjacent elements.
+/// Returns tuple (xy_to_region[x][y]->i, region_to_xys[i]->[(x,y), ...])
 fn region_map_from_reselboard(
   board: &Vec<Vec<Resel>>
 ) -> (Vec<Vec<usize>>, Vec<Vec<(usize, usize)>>) {
-  let (width, height) = (reselboard.len(), reselboard[0].len());
+  // todo: Vec<Vec<>> not necessarily grid.
+  let (width, height) = (board.len(), board[0].len());
+
   let mut visited:       Vec<Vec<bool>>  = vec![vec![false; height as usize]; width as usize];
   let mut region_idx:    usize = 0;
   let mut xy_to_region:  Vec<Vec<usize>> = vec![vec![0; height as usize]; width as usize];
-  let mut region_to_xys: Vec<Vec<(usize, usize)>> = vec![Vec::new()];
+  let mut region_to_xys: Vec<Vec<(usize, usize)>> = vec![vec![]];
 
   for x in 0..width { for y in 0..height { if !visited[x][y] {
-    let color = board[x][y];
-    if color == Resel::Empty {
+    let resel = board[x][y];
+    if resel == Resel::Empty {
       visited[x][y] = true;
       region_to_xys[0].push((x,y));
     } else {
       // New region! Set up our variables and explore
       region_idx += 1;
-      region_to_xys(Vec::new());
+      region_to_xys.push(Vec::new());
 
       // Neighbors only holds unvisited Resels of the .same() color
       let mut neighbors: Vec<(usize, usize)> = vec![(x,y)];
@@ -104,18 +110,16 @@ fn region_map_from_reselboard(
         region_to_xys[region_idx].push((x,y));
         visited[x][y] = true;
         
-        /* for dx, dy in neighborhood:
-        todo! 
-        if board[x][y].same(color) && !visited[x][y] {
-
-        }
-        */
-      } // For each surrounding neighbor, 
-    } // Start recording a new region
-  }}} // for each unvisited x, y
+        for (nx, ny) in get_neighbors(resel, x, y, width, height) {
+          if board[x][y].same(resel) && !visited[x][y] {
+            neighbors.push((nx, ny))
+          } // If unvisited & same class, add to queue
+        } // ... and check each surrounding neighbor.
+      } // For each queued neighbor, record it... 
+    } // Start recording a new region!
+  }}} // for each x, y, if unvisited,
   (xy_to_region, region_to_xys)
 }
-*/
 
 /*
 fn resel_region_mapping_from_reselboard(
@@ -338,5 +342,14 @@ mod reselboard_tests {
     }
   }
   
+  #[test]
+
+  fn test_regon_map_basic() {
+    // fn region_map_from_reselboard(board: &Vec<Vec<Resel>>)
+    //    -> (Vec<Vec<usize>>, Vec<Vec<(usize, usize)>>)
+    /*
+    TODO: how to test without ensured order?
+    */
+  }
 
 }

@@ -37,7 +37,7 @@ fn delta_to_neighbor(
   width: usize, height: usize,
   wrap: bool
 ) -> Option<(usize, usize)> {
-  // todo: handle overflows, write tests
+  // todo: handle overflows, write tests for that
   let ax = x as isize + dx;
   let ay = y as isize + dy;
   if wrap { // wrap: No "out-of-bounds" to consider, just return (x+dx)%width
@@ -68,22 +68,11 @@ pub fn get_neighbors(
     .collect()
 }
 
-  // Todo! 2023-Nov-25
-  // Last thing you did was make this function
-  // 1. ~~Rename
-  // 2. ~~Refactor: Create `impl Resel { pub fn neighbor_deltas() -> (isize, isize)`~~
-  // 3. ~~Refactor map:
-  //    deltas_to_absolute_neighbors(
-  //      deltas: Vec<(isize, isize)>,
-  //      x: usize, y: usize,
-  //      width: usize, height: usize,
-  //      wrap: bool
-  // )
-  // 4. Test delta_to_neighbor
-  // 5. Test get_neighbors
-  // 6. Rework into `impl reselboard`?
-  // 7. delta_to_neighbor: Handle integer overflows 
-  // 8. Continue! Complete our Region Mapper!
+// Todo! 2023-Nov-26
+// 1. Continue! Complete our Region Mapper!
+// 2. Region Mapper tests
+// 3. Almost there...
+// 4. Rework into `impl reselboard`?
 
 /*
 fn region_map_from_reselboard(
@@ -225,6 +214,8 @@ fn resel_region_mapping_from_reselboard(
 #[cfg(test)]
 mod reselboard_tests {
   use super::*;
+  use std::collections::HashSet;
+
   #[test]
   fn load_image_doesnt_exist() {
     assert!(load_image_from_filename("this_does_not_exist.png").is_none())
@@ -325,6 +316,27 @@ mod reselboard_tests {
     }
   }
 
+  #[test]
+  fn test_get_neighbors() {
+    // get_neighbors(resel: Resel, x: usize, y: usize, width: usize, height: usize) -> Vec<(usize, usize)>
+    for (resel, x, y, width, height, neighbors) in [
+      // todo
+      (Resel::Empty, 0, 0, 1, 1, Vec::<(usize, usize)>::new()),
+      // TODO
+      // Test non-wire neighborhoods within bounds
+      (Resel::AND, 4, 4, 10, 10, vec![(4,5), (5,4), (3,4), (4,3)]),
+      // Test wire neighborhoods within bounds
+      (Resel::WireOrangeOn, 4, 4, 10, 10, vec![(4,5), (5,4), (3,4), (4,3), (5,5), (5,3), (3,5), (3,3)]),
+      // Test non-wire neighborhoods near bounds
+      (Resel::Input, 0, 4, 10, 10, vec![(0,5), (1,4), (9,4), (0,3)]),
+      // Test wire neighborhoods near bounds
+      (Resel::WireLimeOff, 4, 0, 10, 10, vec![(4,1), (5,0), (3,0), (4,9), (5,1), (5,9), (3,1), (3,9)]),
+    ] {
+      let neighbors_1: HashSet<(usize, usize)> = get_neighbors(resel, x, y, width, height).into_iter().collect();
+      let neighbors_2: HashSet<(usize, usize)> = neighbors.into_iter().collect();
+      assert_eq!(neighbors_1, neighbors_2);
+    }
+  }
   
 
 }

@@ -222,11 +222,10 @@ impl Resel {
   // These have no tests
   pub fn is_wire(&self) -> bool {
     match self {
-      (
-        Resel::WireOrangeOff   | Resel::WireOrangeOn   |
-        Resel::WireSapphireOff | Resel::WireSapphireOn |
-        Resel::WireLimeOff     | Resel::WireLimeOn
-      ) => true,
+      Resel::WireOrangeOff   | Resel::WireOrangeOn   |
+      Resel::WireSapphireOff | Resel::WireSapphireOn |
+      Resel::WireLimeOff     | Resel::WireLimeOn
+        => true,
       _ => false
     }
   }
@@ -247,11 +246,10 @@ impl Resel {
 
   pub fn delta_neighbors(&self) -> Vec<(isize, isize)> {
     match self {
-      (
-        Resel::WireOrangeOff   | Resel::WireOrangeOn   |
-        Resel::WireSapphireOff | Resel::WireSapphireOn |
-        Resel::WireLimeOff     | Resel::WireLimeOn
-      ) => vec![(1,0),(1,1),(0,1),(-1,1),(-1,0),(-1,-1),(0,-1),(1,-1)],
+      Resel::WireOrangeOff   | Resel::WireOrangeOn   |
+      Resel::WireSapphireOff | Resel::WireSapphireOn |
+      Resel::WireLimeOff     | Resel::WireLimeOn
+        => vec![(1,0),(1,1),(0,1),(-1,1),(-1,0),(-1,-1),(0,-1),(1,-1)],
       Resel::Empty => Vec::new(),
       _ => vec![(1,0),(0,1),(-1,0),(0,-1)],
     }

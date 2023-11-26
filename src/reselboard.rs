@@ -48,9 +48,8 @@ fn delta_to_neighbor(
       )
     )
   } else { // No wrap; check (ax,ay) within bounds
-    if ( // Check bounds
-      (ax > width as isize) || (ax < 0) || (ay > height as isize) || (ay < 0)
-    ) { // Out of bounds, return None
+    if (ax >= width as isize) || (ax < 0) || (ay >= height as isize) || (ay < 0)
+    { // Out of bounds, return None
       None
     } else { // Within bounds, just return (ax, ay)
       Some((ax as usize, ay as usize))
@@ -86,7 +85,7 @@ pub fn get_neighbors(
   // 7. delta_to_neighbor: Handle integer overflows 
   // 8. Continue! Complete our Region Mapper!
 
-
+/*
 fn region_map_from_reselboard(
   board: &Vec<Vec<Resel>>
 ) -> (Vec<Vec<usize>>, Vec<Vec<(usize, usize)>>) {
@@ -127,6 +126,7 @@ fn region_map_from_reselboard(
   }}} // for each unvisited x, y
   (xy_to_region, region_to_xys)
 }
+*/
 
 /*
 fn resel_region_mapping_from_reselboard(
@@ -267,26 +267,61 @@ mod reselboard_tests {
   }
 
   #[test]
-
   fn test_delta_to_neighbor() {
-    /*
-    fn delta_to_neighbor(
-      x: usize, y: usize,
-      dx: isize, dy: isize,
-      width: usize, height: usize,
-      wrap: bool
-    )
-    // todo
-    */
-
     for (x, y, dx, dy, width, height, wrap, expected) in [
+      // Base case
       (0, 0, 0, 0, 1, 1, true, Some((0, 0))),
-      // TODO! Write more here
+      // Generic cases
+      (11, 11,  1,  0, 100, 100, true, Some((12,11))),
+      (11, 11,  0,  0, 100, 100, true, Some((11,11))),
+      (11, 11, -1, -1, 100, 100, true, Some((10,10))),
+      (11, 11, -1,  1, 100, 100, true, Some((10,12))),
+      (11, 11,  1,  0, 100, 100, false, Some((12,11))), // Repeat but with wrap=false
+      (11, 11,  0,  0, 100, 100, false, Some((11,11))),
+      (11, 11, -1, -1, 100, 100, false, Some((10,10))),
+      (11, 11, -1,  1, 100, 100, false, Some((10,12))),
+      // Cases forcing a wrap (from each border/corner)
+      (0, 0, -1,  0, 100, 100, true, Some((99,0))),
+      (0, 0, -1, -1, 100, 100, true, Some((99,99))),
+      (0, 0,  0, -1, 100, 100, true, Some((0,99))),
+
+      (99, 0,  1,  0, 100, 100, true, Some((0,0))),
+      (99, 0,  1, -1, 100, 100, true, Some((0,99))),
+      (99, 0,  0, -1, 100, 100, true, Some((99,99))),
+
+      (0, 99, -1,  0, 100, 100, true, Some((99,99))),
+      (0, 99, -1,  1, 100, 100, true, Some((99,0))),
+      (0, 99,  0,  1, 100, 100, true, Some((0,0))),
+
+      (99, 99,  1,  0, 100, 100, true, Some((0,99))),
+      (99, 99,  1,  1, 100, 100, true, Some((0,0))),
+      (99, 99,  0,  1, 100, 100, true, Some((99,0))),
+
+      // Cases forcing a wrap but wrap=false
+      (0, 0, -1,  0, 100, 100, false, None),
+      (0, 0, -1, -1, 100, 100, false, None),
+      (0, 0,  0, -1, 100, 100, false, None),
+
+      (99, 0,  1,  0, 100, 100, false, None),
+      (99, 0,  1, -1, 100, 100, false, None),
+      (99, 0,  0, -1, 100, 100, false, None),
+
+      (0, 99, -1,  0, 100, 100, false, None),
+      (0, 99, -1,  1, 100, 100, false, None),
+      (0, 99,  0,  1, 100, 100, false, None),
+
+      (99, 99,  1,  0, 100, 100, false, None),
+      (99, 99,  1,  1, 100, 100, false, None),
+      (99, 99,  0,  1, 100, 100, false, None),
+
+      // Consider dx, dy > 1
     ] {
       assert_eq!(
         delta_to_neighbor(x,y,dx,dy,width,height,wrap),
         expected
       )
+
+      // Not tested: Overflow during isize/usize conversion
     }
   }
 

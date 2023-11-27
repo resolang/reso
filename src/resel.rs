@@ -237,12 +237,9 @@ impl Resel {
     }
   }
 
-  pub fn is_io(&self) -> bool {
-    match self {
-      Resel::Input | Resel::Output => true,
-      _ => false
-    }
-  }
+  pub fn is_input(&self) -> bool { *self == Resel::Input }
+  pub fn is_output(&self) -> bool { *self == Resel::Output }
+  pub fn is_io(&self) -> bool { self.is_input() || self.is_output() }
 
   pub fn delta_neighbors(&self) -> Vec<(isize, isize)> {
     match self {

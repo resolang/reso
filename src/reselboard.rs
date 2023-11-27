@@ -69,11 +69,30 @@ pub fn get_neighbors(
     .collect()
 }
 
+/*
+let (
+  xy_to_region, region_to_xys, region_to_resel,
+  wire_regions, input_regions, logic_regions, output_regions
+) = region_map_from_reselboard(board)
+*/
 /// Given a reselboard, find and index regions of adjacent elements.
-/// Returns tuple (xy_to_region[x][y]->i, region_to_xys[i]->[(x,y), ...])
+/// Returns: 
+/// xy_to_region[x][y]->i
+/// region_to_xys[i]->[(x,y), ...])
+/// region_to_resel[i]->Resel,
+/// wire_regions[i]->[i,...], input_regions, logic_regions, output_regions
+/// 
 fn region_map_from_reselboard(
   board: &Vec<Vec<Resel>>
-) -> (Vec<Vec<usize>>, Vec<Vec<(usize, usize)>>) {
+) -> (
+  Vec<Vec<usize>>,          // xy_to_region
+  Vec<Vec<(usize, usize)>>, // region_to_xys
+  Vec<Resel>, //region_to_resel
+  Vec<usize>, // wire_regions
+  Vec<usize>, // input_regions
+  Vec<usize>, // logic_regions
+  Vec<usize>, // output_regions
+) {
   // todo: Vec<Vec<>> not necessarily grid.
   let (width, height) = (board.len(), board[0].len());
 
@@ -81,6 +100,14 @@ fn region_map_from_reselboard(
   let mut region_idx:    usize = 0;
   let mut xy_to_region:  Vec<Vec<usize>> = vec![vec![0; height as usize]; width as usize];
   let mut region_to_xys: Vec<Vec<(usize, usize)>> = vec![vec![]];
+  let mut region_to_resel: Vec<Resel> = vec![Resel::Empty];
+
+  // Dense class indices
+  let mut wire_regions: Vec<usize> = vec![];
+  let mut input_regions: Vec<usize> = vec![];
+  let mut logic_regions: Vec<usize> = vec![];
+  let mut output_regions: Vec<usize> = vec![];
+
 
   for x in 0..width { for y in 0..height { if !visited[x][y] {
     let resel = board[x][y];
@@ -91,6 +118,12 @@ fn region_map_from_reselboard(
       // New region! Set up our variables and explore
       region_idx += 1;
       region_to_xys.push(Vec::new());
+      region_to_resel.push(resel);
+      
+      if resel.is_wire()   { wire_regions.push(region_idx)   }
+      if resel.is_input()  { input_regions.push(region_idx)  }
+      if resel.is_logic()  { logic_regions.push(region_idx)  }
+      if resel.is_output() { output_regions.push(region_idx) }
 
       // Neighbors only holds unvisited Resels of the .same() color
       let mut neighbors: Vec<(usize, usize)> = vec![(x,y)];
@@ -110,7 +143,7 @@ fn region_map_from_reselboard(
       } // For each queued neighbor, record it... 
     } // Start recording a new region!
   }}} // for each x, y, if unvisited,
-  (xy_to_region, region_to_xys)
+  (xy_to_region, region_to_xys, region_to_resel, wire_regions, input_regions, logic_regions, output_regions)
 }
 
 #[cfg(test)]
@@ -237,48 +270,44 @@ mod reselboard_tests {
       assert_eq!(neighbors_1, neighbors_2);
     }
   }
-  
+
+
   #[test]
   fn test_regon_map_basic() {
     for board in [
       vec![vec![Resel::Empty]],
     ] {
+      let (
+        xy_to_region, region_to_xys, region_to_resel,
+        wire_regions, input_regions, logic_regions, output_regions
+      ) = region_map_from_reselboard(&board);
 
-      let (xy_to_region, region_to_xys) = region_map_from_reselboard(&board);
       // Can't guarantee same structure of `expected`
       // Instead test:
-      // 1. Same:    Each region has all the .same() colors
-      // 2. Account: Each `xy` is accounted for exactly once across `region_to_xys`
-      // 3 ... 
+      // 1. Same:    Each region has all the .same() color as region_to_resel
+      // 2. Account for x,y: Each `xy` is accounted for exactly once across `region_to_xys`
+      // 3. Account for indices: Each dense-class region index is accounted for exactly once across the dense regions
+      // ...
   
       let (width, height) = (board.len(), board[0].len());
       let mut accounted:       Vec<Vec<bool>>  = vec![vec![false; height as usize]; width as usize];
 
       for region_idx in 0..region_to_xys.len() {
-        // Check that all board[x][y] are the same for all region_to_xys[region_idx]
-        // using `iter()`, etc
-        region_color = 
-        /*
-        assert!(
-          region_to_xys[region_idx]
-          .iter()
-          .all(|(x, y)| board[*x][*y].same(board[region_to_xys[region_idx][0].0][region_to_xys[region_idx][0].1])));
+        for (x,y) in &region_to_xys[region_idx] {
+          // Assert all are the same color
+          let resel_by_coord = board[*x][*y];
+          let resel_by_region = region_to_resel[region_idx];
+          assert_eq!(resel_by_coord, resel_by_region);
 
-
-        for (x, y) in &region_to_xys[region_idx] {
-          // 
-          
-          
-          // Accounting: Each `x,y` must be accounted for exactly once
+          // Account each x,y
           assert!(!accounted[*x][*y]);
           accounted[*x][*y] = true;
-
         }
-        */
+
+        // TODO: Account for each region index
       }
     }    
   }
-
 }
 
 /*

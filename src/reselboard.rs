@@ -272,27 +272,42 @@ mod reselboard_tests {
   }
 
 
+  // TODO from here: More boards!
   #[test]
   fn test_regon_map_basic() {
     for board in [
       vec![vec![Resel::Empty]],
+      image_to_vecvecresel(&load_image_from_filename("./src/testing/test_01_new-palette.png").unwrap()),
+      image_to_vecvecresel(&load_image_from_filename("./src/testing/test_02_new-palette_1.png").unwrap()),
+      image_to_vecvecresel(&load_image_from_filename("./src/testing/test_02_new-palette.png").unwrap()),
+      image_to_vecvecresel(&load_image_from_filename("./src/testing/test_03_01.png").unwrap()),
+      image_to_vecvecresel(&load_image_from_filename("./src/testing/test_03_02.png").unwrap()),
+      image_to_vecvecresel(&load_image_from_filename("./src/testing/test_03_03.png").unwrap()),
+      image_to_vecvecresel(&load_image_from_filename("./src/testing/test_03_04.png").unwrap()),
+      image_to_vecvecresel(&load_image_from_filename("./src/testing/test_03_alloff.png").unwrap()),
+      image_to_vecvecresel(&load_image_from_filename("./src/testing/test_03_allon.png").unwrap()),
+      image_to_vecvecresel(&load_image_from_filename("./src/testing/test_04.png").unwrap()),
+      image_to_vecvecresel(&load_image_from_filename("./src/testing/test_05_01.png").unwrap()),
+      image_to_vecvecresel(&load_image_from_filename("./src/testing/test_05_02.png").unwrap()),
+      image_to_vecvecresel(&load_image_from_filename("./src/testing/test_05_03.png").unwrap()),
+      image_to_vecvecresel(&load_image_from_filename("./src/testing/test_05_04.png").unwrap()),
+      image_to_vecvecresel(&load_image_from_filename("./src/testing/test_05_05.png").unwrap()),
+      image_to_vecvecresel(&load_image_from_filename("./src/testing/test_05_06.png").unwrap()),
     ] {
       let (
         xy_to_region, region_to_xys, region_to_resel,
         wire_regions, input_regions, logic_regions, output_regions
       ) = region_map_from_reselboard(&board);
 
-      // Can't guarantee same structure of `expected`
-      // Instead test:
-      // 1. Same:    Each region has all the .same() color as region_to_resel
-      // 2. Account for x,y: Each `xy` is accounted for exactly once across `region_to_xys`
-      // 3. Account for indices: Each dense-class region index is accounted for exactly once across the dense regions
-      // ...
   
       let (width, height) = (board.len(), board[0].len());
-      let mut accounted:       Vec<Vec<bool>>  = vec![vec![false; height as usize]; width as usize];
+      let N_regions = region_to_xys.len();
+      let mut accounted_xy:       Vec<Vec<bool>>  = vec![vec![false; height as usize]; width as usize];
+      let mut accounted_region: Vec<bool> = vec![false; N_regions];
 
-      for region_idx in 0..region_to_xys.len() {
+      assert!(N_regions >= 1);
+
+      for region_idx in 0..N_regions {
         for (x,y) in &region_to_xys[region_idx] {
           // Assert all are the same color
           let resel_by_coord = board[*x][*y];
@@ -300,11 +315,29 @@ mod reselboard_tests {
           assert_eq!(resel_by_coord, resel_by_region);
 
           // Account each x,y
-          assert!(!accounted[*x][*y]);
-          accounted[*x][*y] = true;
+          assert!(!accounted_xy[*x][*y]);
+          accounted_xy[*x][*y] = true;          
         }
+      }
 
-        // TODO: Account for each region index
+      // Now, each `x,y` should be accounted
+      for x in 0..width{ for y in 0..height {
+        assert!(accounted_xy[x][y]);
+      }}
+
+      // Account each region_idx
+      for region_iterator in [
+        vec![0], wire_regions, input_regions, logic_regions, output_regions
+      ] {
+        for region_idx in region_iterator {
+          assert!(!accounted_region[region_idx]);
+          accounted_region[region_idx] = true;
+          }
+        }
+      
+      // Now, each region_idx should be accounted for
+      for region_idx in 0..N_regions {
+        assert!(accounted_region[region_idx])
       }
     }    
   }

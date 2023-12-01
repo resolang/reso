@@ -122,7 +122,7 @@ pub fn region_map_from_reselboard(
       region_idx += 1;
       region_to_xys.push(Vec::new());
       region_to_resel.push(resel);
-      println!("\nNew region {} with resel {:?}\nNeighbors:", region_idx, resel);
+      //println!("\nNew region {} with resel {:?}\nNeighbors:", region_idx, resel);
       
       if resel.is_wire()   { wire_regions.push(region_idx)   }
       if resel.is_input()  { input_regions.push(region_idx)  }
@@ -145,7 +145,7 @@ pub fn region_map_from_reselboard(
             // Only add unvisited neighbor coordinates of the same class
             neighbors.push((nx, ny));
             visited[nx][ny] = true;
-            println!("... ({},{}) sees ({},{})", x,y, nx, ny);
+            //println!("... ({},{}) sees ({},{})", x,y, nx, ny);
 
           } // If unvisited & same class, add to queue
         } // ... and check each surrounding neighbor.
@@ -320,6 +320,7 @@ mod reselboard_tests {
       image_to_vecvecresel(&load_image_from_filename("./src/testing/test_05_04.png").unwrap()),
       image_to_vecvecresel(&load_image_from_filename("./src/testing/test_05_05.png").unwrap()),
       image_to_vecvecresel(&load_image_from_filename("./src/testing/test_05_06.png").unwrap()),
+      image_to_vecvecresel(&load_image_from_filename("./src/testing/test_06.png").unwrap()),
     ] {
       let (
         xy_to_region, region_to_xys, region_to_resel,
@@ -418,6 +419,59 @@ mod reselboard_tests {
       vec![
         Resel::Empty,
         Resel::WireOrangeOn, Resel::WireLimeOn, Resel::WireSapphireOff,
+        Resel::Input, Resel::Input
+      ]
+    );
+
+    assert_eq!(wire_regions,   vec![1,2,3]);
+    assert_eq!(input_regions,  vec![4,5]);
+    assert_eq!(logic_regions,  vec![]);
+    assert_eq!(output_regions, vec![]);
+  }
+
+  #[test]
+  fn test_region_map_06() {
+    /*
+    This is a fragile test.
+    It assumes an order to the elements returned, despite 
+    region_map_from_reselboard not guaranteeing such an order.
+
+    Someone better at Rust should rework this.
+    */
+    let board = image_to_vecvecresel(
+      &load_image_from_filename(
+        "./src/testing/test_06.png"
+      ).unwrap()
+    );
+
+    let (
+      xy_to_region, region_to_xys, region_to_resel,
+      wire_regions, input_regions, logic_regions, output_regions
+    ) = region_map_from_reselboard(&board);
+
+    assert_eq!(
+      xy_to_region,
+      vec![vec![1,0,2], vec![1,3,3], vec![1,4,2], vec![1,2,5], vec![2,2,5]]
+    );
+
+    assert_eq!(
+      region_to_xys,
+      vec![
+        vec![(0,1)],
+        vec![(0,0), (1,0), (2,0), (3,0)],
+        vec![(0,2), (4,1), (3,1), (2,2), (4,0)],
+        vec![(1,1), (1,2)],
+        vec![(2,1)],
+        vec![(3,2), (4,2)]
+      ]
+    );
+
+    assert_eq!(
+      region_to_resel,
+      vec![
+        Resel::Empty,
+        Resel::WireLimeOn, Resel::WireOrangeOff,
+        Resel::WireSapphireOn,
         Resel::Input, Resel::Input
       ]
     );

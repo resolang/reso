@@ -23,9 +23,10 @@ use regionmap::{
 /*
 todo:
 - Reselboard.rs:
-  - Struct with {board, image, width, height}
-  - Change get_neighbors to take in resel.delta_neighbors()
+  - ~~Struct with {board, image, width, height}~~
+  - ~~Change get_neighbors to take in resel.delta_neighbors()~~
   - impl `reselboard.get_neighbors(x,y)` wrapping `get_neighbors`
+  - Rework RegionMap to use ReselBoard
   - impl `reselboard.set_resel(resel, x, y)`, updates pixel too
   - impl `reselboard.set_pixel(Rgba, x, y)`, updates resel too
 

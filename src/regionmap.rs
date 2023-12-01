@@ -34,7 +34,9 @@ TODO:
 - Find some way to make generic and publish the CCL algorithm
 */
 use crate::resel::{Resel};
-use crate::reselboard::{get_neighbors, delta_to_neighbor}
+use crate::reselboard::{
+  ReselBoard
+};
 
 pub struct RegionMap {
   xy_to_region: Vec<Vec<usize>>,            // [x][y] -> i
@@ -58,10 +60,10 @@ let (
 /// Return as instance of RegionMap, which just holds all the useful data
 /// 
 pub fn region_map_from_reselboard(
-  board: &Vec<Vec<Resel>>
+  rb: &ReselBoard,
 ) -> RegionMap {
   // todo: Vec<Vec<>> not necessarily grid. Check!
-  let (width, height) = (board.len(), board[0].len());
+  let (width, height) = (rb.width, rb.height);
 
   // visited and region_idx: Memory used only when compiling
   let mut visited:       Vec<Vec<bool>>  = vec![vec![false; height as usize]; width as usize];
@@ -80,7 +82,7 @@ pub fn region_map_from_reselboard(
 
 
   for x in 0..width { for y in 0..height { if !visited[x][y] {
-    let resel = board[x][y];
+    let resel = rb.board[x][y];
     if resel == Resel::Empty {
       visited[x][y] = true;
       region_to_xys[0].push((x,y));
@@ -107,8 +109,8 @@ pub fn region_map_from_reselboard(
         visited[x][y] = true;
 
         
-        for (nx, ny) in get_neighbors(resel, x, y, width, height) {
-          if board[nx][ny].same(resel) && !visited[nx][ny] {
+        for (nx, ny) in rb.get_neighbors(x, y) {
+          if rb.board[nx][ny].same(resel) && !visited[nx][ny] {
             // Only add unvisited neighbor coordinates of the same class
             neighbors.push((nx, ny));
             visited[nx][ny] = true;
@@ -138,37 +140,39 @@ mod reselboard_tests {
   use std::collections::HashSet;
   use crate::reselboard::{
     load_image_from_filename,
-    image_to_vecvecresel
+    image_to_vecvecresel,
+    image_to_reselboard,
+    vecvecresel_to_reselboard,
+    ReselBoard
   };
 
 
 
   #[test]
   fn test_regon_map_basic() {
-    for board in [
-      vec![vec![Resel::Empty]],
-      image_to_vecvecresel(&load_image_from_filename("./src/testing/test_01_new-palette.png").unwrap()),
-      image_to_vecvecresel(&load_image_from_filename("./src/testing/test_02_new-palette_1.png").unwrap()),
-      image_to_vecvecresel(&load_image_from_filename("./src/testing/test_02_new-palette.png").unwrap()),
-      image_to_vecvecresel(&load_image_from_filename("./src/testing/test_03_01.png").unwrap()),
-      image_to_vecvecresel(&load_image_from_filename("./src/testing/test_03_02.png").unwrap()),
-      image_to_vecvecresel(&load_image_from_filename("./src/testing/test_03_03.png").unwrap()),
-      image_to_vecvecresel(&load_image_from_filename("./src/testing/test_03_04.png").unwrap()),
-      image_to_vecvecresel(&load_image_from_filename("./src/testing/test_03_alloff.png").unwrap()),
-      image_to_vecvecresel(&load_image_from_filename("./src/testing/test_03_allon.png").unwrap()),
-      image_to_vecvecresel(&load_image_from_filename("./src/testing/test_04.png").unwrap()),
-      image_to_vecvecresel(&load_image_from_filename("./src/testing/test_05_01.png").unwrap()),
-      image_to_vecvecresel(&load_image_from_filename("./src/testing/test_05_02.png").unwrap()),
-      image_to_vecvecresel(&load_image_from_filename("./src/testing/test_05_03.png").unwrap()),
-      image_to_vecvecresel(&load_image_from_filename("./src/testing/test_05_04.png").unwrap()),
-      image_to_vecvecresel(&load_image_from_filename("./src/testing/test_05_05.png").unwrap()),
-      image_to_vecvecresel(&load_image_from_filename("./src/testing/test_05_06.png").unwrap()),
-      image_to_vecvecresel(&load_image_from_filename("./src/testing/test_06.png").unwrap()),
+    for rb in [
+      vecvecresel_to_reselboard(vec![vec![Resel::Empty]]),
+      image_to_reselboard(load_image_from_filename("./src/testing/test_01_new-palette.png").unwrap()),
+      image_to_reselboard(load_image_from_filename("./src/testing/test_02_new-palette_1.png").unwrap()),
+      image_to_reselboard(load_image_from_filename("./src/testing/test_02_new-palette.png").unwrap()),
+      image_to_reselboard(load_image_from_filename("./src/testing/test_03_01.png").unwrap()),
+      image_to_reselboard(load_image_from_filename("./src/testing/test_03_02.png").unwrap()),
+      image_to_reselboard(load_image_from_filename("./src/testing/test_03_03.png").unwrap()),
+      image_to_reselboard(load_image_from_filename("./src/testing/test_03_04.png").unwrap()),
+      image_to_reselboard(load_image_from_filename("./src/testing/test_03_alloff.png").unwrap()),
+      image_to_reselboard(load_image_from_filename("./src/testing/test_03_allon.png").unwrap()),
+      image_to_reselboard(load_image_from_filename("./src/testing/test_04.png").unwrap()),
+      image_to_reselboard(load_image_from_filename("./src/testing/test_05_01.png").unwrap()),
+      image_to_reselboard(load_image_from_filename("./src/testing/test_05_02.png").unwrap()),
+      image_to_reselboard(load_image_from_filename("./src/testing/test_05_03.png").unwrap()),
+      image_to_reselboard(load_image_from_filename("./src/testing/test_05_04.png").unwrap()),
+      image_to_reselboard(load_image_from_filename("./src/testing/test_05_05.png").unwrap()),
+      image_to_reselboard(load_image_from_filename("./src/testing/test_05_06.png").unwrap()),
+      image_to_reselboard(load_image_from_filename("./src/testing/test_06.png").unwrap()),
     ] {
-      let rm = region_map_from_reselboard(&board);
+      let rm = region_map_from_reselboard(&rb);
 
-  
-      let (width, height) = (board.len(), board[0].len());
+      let (width, height) = (rb.board.len(), rb.board[0].len());
       let N_regions = rm.region_to_xys.len();
       let mut accounted_xy:       Vec<Vec<bool>>  = vec![vec![false; height as usize]; width as usize];
       let mut accounted_region: Vec<bool> = vec![false; N_regions];
@@ -180,7 +184,7 @@ mod reselboard_tests {
 
         for (x,y) in &rm.region_to_xys[region_idx] {
           // Assert all elements in the region are the same color
-          let resel_by_coord = board[*x][*y];
+          let resel_by_coord = rb.board[*x][*y];
           assert!(resel_by_coord.same(resel_by_region));
 
           // Account each x,y
@@ -226,13 +230,13 @@ mod reselboard_tests {
 
     Someone better at Rust should rework this.
     */
-    let board = image_to_vecvecresel(
-      &load_image_from_filename(
+    let rb = image_to_reselboard(
+      load_image_from_filename(
         "./src/testing/test_01_new-palette.png"
       ).unwrap()
     );
 
-    let rm = region_map_from_reselboard(&board);
+    let rm = region_map_from_reselboard(&rb);
 
     assert_eq!(
       rm.xy_to_region,
@@ -275,13 +279,13 @@ mod reselboard_tests {
 
     Someone better at Rust should rework this.
     */
-    let board = image_to_vecvecresel(
-      &load_image_from_filename(
+    let rb = image_to_reselboard(
+      load_image_from_filename(
         "./src/testing/test_06.png"
       ).unwrap()
     );
 
-    let rm = region_map_from_reselboard(&board);
+    let rm = region_map_from_reselboard(&rb);
 
     assert_eq!(
       rm.xy_to_region,

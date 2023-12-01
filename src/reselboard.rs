@@ -3,9 +3,24 @@ reselboard.rs
 
 Provides operations related to Vec<Vec<Resel>>.
 
+TODOs:
+- ~~Struct with {board, image, width, height}~~
+- ~~Change get_neighbors to take in resel.delta_neighbors()~~
+- ~~impl `reselboard.get_neighbors(x,y)` wrapping `get_neighbors`~~
+  - Test above?
+- ~~Rework RegionMap to use ReselBoard~~
+- ~~Create ReselBoard from Vec<Vec<Resel>>~~
+  - and have it create the image too, optionally
+- impl `reselboard.set_resel(resel, x, y)`, updates pixel too
+- impl `reselboard.set_pixel(Rgba, x, y)`, updates resel too
+- Cleanup:
+  - Fix this doc
+  - Re-order / rename functions below
+
 Public functions:
 pub fn load_image_from_filename(filename: &str) -> Option<DynamicImage>
 pub fn image_to_vecvecresel(img: &DynamicImage) -> Vec<Vec<Resel>>
+pub fn image_to_reselboard(image: DynamicImage) -> ReselBoard
 
 // Perform |(x,y)| -> (x+dx %w, y+dy %h), with bounds and wrapping 
 pub fn delta_to_neighbor(x, y, dx, dy, width, height, wrap)
@@ -14,16 +29,47 @@ pub fn delta_to_neighbor(x, y, dx, dy, width, height, wrap)
 // Get all neighbor coordinates of Resel at (x,y) using delta_to_neighbor
 get_neighbors(resel, x, y, width, height) -> Vec<(x,y)>
 
+
 todo:
 - Consider making struct ReselBoard which holds Vec<Vec<Resel>> and image?
 - Consider making a region_to_dense index?
   (If we need to reverse dense index)
 - maybe `get_neighbors` should take `neighbors: vec<(usize, usize)>`
   (e.g. call with resel.delta_neighbors()?
-  
+
 */
 use crate::resel::{Resel};
 use image::{Rgba, DynamicImage, GenericImageView};
+
+pub struct ReselBoard {
+  pub board: Vec<Vec<Resel>>,
+  pub image: Option<DynamicImage>,
+  pub width: usize,
+  pub height: usize
+}
+
+pub fn image_to_reselboard(image: DynamicImage) -> ReselBoard {
+  let (width, height) = image.dimensions();
+
+  ReselBoard {
+    board: image_to_vecvecresel(&image),
+    image: Some(image),
+    width: width as usize,
+    height: height as usize,
+  }
+}
+
+pub fn vecvecresel_to_reselboard(board: Vec<Vec<Resel>>) -> ReselBoard {
+  let width = board.len();
+  let height = board[0].len();
+  // todo: check board is a grid, at least one whole pixel
+  ReselBoard {
+    board: board,
+    image: None, // todo: Optionally generate from ReselBoard
+    width: width,
+    height: height
+  }
+}
 
 // Helper function
 pub fn load_image_from_filename(filename: &str) -> Option<DynamicImage> {
@@ -33,7 +79,8 @@ pub fn load_image_from_filename(filename: &str) -> Option<DynamicImage> {
   }
 }
 
-// Instantiate Vec<Vec<Resel>> 
+// Instantiate Vec<Vec<Resel>>
+// Can't make it an impl from because reasons
 pub fn image_to_vecvecresel(img: &DynamicImage) -> Vec<Vec<Resel>> {
   let (width, height) = img.dimensions();
   let mut reselboard = vec![vec![Resel::Empty; height as usize]; width as usize];
@@ -75,16 +122,28 @@ pub fn delta_to_neighbor(
   }
 }
 
-// get_neighbors(resel, x, y, width, height) -> convenient list of coordinates
+// get_neighbors(neighbors, x, y, width, height) -> convenient list of coordinates
 pub fn get_neighbors(
-  resel: Resel, x: usize, y: usize, width: usize, height: usize
+  deltas: Vec<(isize, isize)>, x: usize, y: usize, width: usize, height: usize
 ) -> Vec<(usize, usize)> {
   // Given resel class + x,y + width,height, get the neighborhood of (x,y) coordinates
 
-  resel.delta_neighbors()
+  deltas
     .into_iter()
     .filter_map(|(dx, dy)| delta_to_neighbor(x, y, dx, dy, width, height, true))
     .collect()
+}
+
+impl ReselBoard {
+  pub fn get_neighbors(&self, x: usize, y:usize) -> Vec<(usize, usize)> {
+    get_neighbors(
+      self.board[x][y].delta_neighbors(),
+      x,
+      y,
+      self.width,
+      self.height
+    )
+  }
 }
 
 #[cfg(test)]
@@ -133,6 +192,34 @@ mod reselboard_tests {
     }
   }
 
+  #[test]
+  fn can_instantiate_reselboard_test() {
+    for filename in [
+      "./src/testing/test_01_new-palette.png",
+      "./src/testing/test_02_new-palette_1.png",
+      "./src/testing/test_02_new-palette.png",
+      "./src/testing/test_03_01.png",
+      "./src/testing/test_03_02.png",
+      "./src/testing/test_03_03.png",
+      "./src/testing/test_03_04.png",
+      "./src/testing/test_03_alloff.png",
+      "./src/testing/test_03_allon.png",
+      "./src/testing/test_04.png",
+      "./src/testing/test_05_01.png",
+      "./src/testing/test_05_02.png",
+      "./src/testing/test_05_03.png",
+      "./src/testing/test_05_04.png",
+      "./src/testing/test_05_05.png",
+      "./src/testing/test_05_06.png",
+      "./src/testing/test_06.png",
+    ] {
+      let image = load_image_from_filename(filename).unwrap();
+      let reselboard = image_to_reselboard(image.clone());
+      assert_eq!(
+        reselboard.board, image_to_vecvecresel(&image)
+      );
+    }
+  }
 
   #[test]
   fn test_delta_to_neighbor() {
@@ -221,7 +308,10 @@ mod reselboard_tests {
         vec![(0,4), (0,0), (2,0), (1,0), (1,4), (1,3), (2,3), (0,3)]
       ),
     ] {
-      let neighbors_1: HashSet<(usize, usize)> = get_neighbors(resel, x, y, width, height).into_iter().collect();
+      let neighbors_1: HashSet<(usize, usize)> = get_neighbors(
+        resel.delta_neighbors(), x, y, width, height
+      ).into_iter().collect();
+
       let neighbors_2: HashSet<(usize, usize)> = neighbors.into_iter().collect();
       assert_eq!(neighbors_1, neighbors_2);
 

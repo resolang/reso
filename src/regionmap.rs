@@ -20,18 +20,6 @@ pub struct RegionMap {
 }
 
 TODO:
-
-  - Consider making a reverse dense region index? (If needed)
-    - e.g. wire_regions =[1,3,5], input_regions=[2,], output_regions=[4,]
-    - then reverse_dense = [
-        0, // empty
-        0, // wire_regions[0]   = 1
-        0, // input_regions[0]  = 2
-        1, // wire_regions[1]   = 3
-        0, // output_regions[2] = 4
-        2, // wire_regions[2]   = 5
-      ]
-    - 
   - region mapper should probably return something like Result<Option<T>, E>
   - Find some way to make generic and publish the CCL algorithm
 
@@ -60,7 +48,7 @@ pub struct RegionMap {
   O(logn): wire_regions.iter().position(|&wire_ri| wire_ri == ri)
   O(1):    reverse_dense[ri]
   */
-  //reverse_dense: Vec<usize>
+  reverse_dense: Vec<usize>
   // TODO Lynn: From here!
   // - rework region map func
   // - rework basic tests for region mapper
@@ -97,6 +85,9 @@ pub fn region_map_from_reselboard(
   let mut logic_regions: Vec<usize> = vec![];
   let mut output_regions: Vec<usize> = vec![];
 
+  // Reverse dense index ties region_index and the dense indices above
+  let mut reverse_dense: Vec<usize> = vec![0];
+
 
   for x in 0..width { for y in 0..height { if !visited[x][y] {
     let resel = rb.board[x][y];
@@ -110,10 +101,23 @@ pub fn region_map_from_reselboard(
       region_to_resel.push(resel);
       //println!("\nNew region {} with resel {:?}\nNeighbors:", region_idx, resel);
       
-      if resel.is_wire()   { wire_regions.push(region_idx)   }
-      if resel.is_input()  { input_regions.push(region_idx)  }
-      if resel.is_logic()  { logic_regions.push(region_idx)  }
-      if resel.is_output() { output_regions.push(region_idx) }
+      // Set up dense and reverse-dense index
+      if resel.is_wire()   {
+        reverse_dense.push(wire_regions.len());
+        wire_regions.push(region_idx);
+      }
+      if resel.is_input()  {
+        reverse_dense.push(input_regions.len());
+        input_regions.push(region_idx)
+      }
+      if resel.is_logic()  {
+        reverse_dense.push(logic_regions.len());
+        logic_regions.push(region_idx)
+      }
+      if resel.is_output() {
+        reverse_dense.push(output_regions.len());
+        output_regions.push(region_idx)
+      }
 
       // Neighbors only holds unvisited Resels of the .same() color
       let mut neighbors: Vec<(usize, usize)> = vec![(x,y)];
@@ -146,7 +150,8 @@ pub fn region_map_from_reselboard(
     wire_regions,
     input_regions,
     logic_regions,
-    output_regions
+    output_regions,
+    reverse_dense
   }
 }
 
@@ -209,7 +214,22 @@ mod reselboard_tests {
           accounted_xy[*x][*y] = true;
 
           // Check xy_to_region is consistent
-          assert_eq!(rm.xy_to_region[*x][*y], region_idx);       
+          assert_eq!(rm.xy_to_region[*x][*y], region_idx);      
+
+          // Check reverse_dense is consistent
+          // ri == xxxx_regions[reverse_dense[ri]]
+          if !resel_by_region.is_empty() {
+            assert_eq!(
+              region_idx,
+              { // Get appropriate dense index
+                if resel_by_region.is_wire()   { rm.wire_regions.clone() } else
+                if resel_by_region.is_input()  { rm.input_regions.clone() } else
+                if resel_by_region.is_logic()  { rm.logic_regions.clone() } else
+                if resel_by_region.is_output() { rm.output_regions.clone() } else
+                { panic!("This should not be possible to reach!") }
+              }[rm.reverse_dense[region_idx]]
+            )
+          }
         }
       }
 

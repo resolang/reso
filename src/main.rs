@@ -29,9 +29,11 @@ todo:
   - AdjacencyMap.rs
   - ResoCircuit.rs
   - main CLI
+  - Draw an example image with associated ReselBoard, RegionMap values
 - Far later:
   - resolang.dev site
   - IDE
+  - Debugger which shows ReselBoard, RegionMap, AdjacencyMap, ResoCircuit state
 */
 
 /*

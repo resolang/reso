@@ -1,9 +1,55 @@
+/*
+reselboard.rs
+
+Provides operations related to Vec<Vec<Resel>>.
+
+Public functions:
+pub fn load_image_from_filename(filename: &str) -> Option<DynamicImage>
+pub fn image_to_vecvecresel(img: &DynamicImage) -> Vec<Vec<Resel>>
+
+pub fn region_map_from_reselboard(
+  board: &Vec<Vec<Resel>>
+) -> RegionMap
+
+
+pub struct RegionMap {
+  xy_to_region: Vec<Vec<usize>>,            // [x][y] -> i
+  region_to_xys: Vec<Vec<(usize, usize)>>,  // [i] -> [(x,y),...]
+  region_to_resel:  Vec<Resel>,             // [Resel::Empty, Resel::And, ...]
+  
+  // dense class indices, for iterating over wires/inputs/logics/outputs
+  wire_regions:     Vec<usize>,
+  input_regions:    Vec<usize>,
+  logic_regions:    Vec<usize>,
+  output_regions:   Vec<usize>,
+
+
+TODO:
+- Make RegionMap also find relevant adjacencies between regions:
+  wires -> inputs
+  inputs -> logic
+  inputs -> outputs
+  logic -> outputs
+  outputs -> wires
+- Handle overflows in neighbor code; perhaps use `?`
+- RegionMapper should probably return something like Result<Option<T>, E>
+- Find some way to make generic and publish the CCL algorithm
+*/
 use crate::resel::{Resel};
 use image::{Rgba, DynamicImage, GenericImageView};
 
-struct ReselBoard {
-  board: Vec<Vec<Resel>>,
-  image: DynamicImage,
+pub struct RegionMap {
+  xy_to_region: Vec<Vec<usize>>,            // [x][y] -> i
+  region_to_xys: Vec<Vec<(usize, usize)>>,  // [i] -> [(x,y),...]
+  region_to_resel:  Vec<Resel>,             // [Resel::Empty, Resel::And, ...]
+
+  // dense class indices, for iterating over wires/inputs/logics/outputs
+  wire_regions:     Vec<usize>,
+  input_regions:    Vec<usize>,
+  logic_regions:    Vec<usize>,
+  output_regions:   Vec<usize>,
+
+
 }
 
 // Helper function
@@ -58,7 +104,7 @@ fn delta_to_neighbor(
 }
 
 // get_neighbors(resel, x, y, width, height) -> convenient list of coordinates
-pub fn get_neighbors(
+fn get_neighbors(
   resel: Resel, x: usize, y: usize, width: usize, height: usize
 ) -> Vec<(usize, usize)> {
   // Given resel class + x,y + width,height, get the neighborhood of (x,y) coordinates
@@ -76,23 +122,11 @@ let (
 ) = region_map_from_reselboard(board)
 */
 /// Given a reselboard, find and index regions of adjacent elements.
-/// Returns: 
-/// xy_to_region[x][y]->i
-/// region_to_xys[i]->[(x,y), ...])
-/// region_to_resel[i]->Resel,
-/// wire_regions[i]->[i,...], input_regions, logic_regions, output_regions
+/// Return as instance of RegionMap, which just holds all the useful data
 /// 
 pub fn region_map_from_reselboard(
   board: &Vec<Vec<Resel>>
-) -> (
-  Vec<Vec<usize>>,          // xy_to_region
-  Vec<Vec<(usize, usize)>>, // region_to_xys
-  Vec<Resel>, //region_to_resel
-  Vec<usize>, // wire_regions
-  Vec<usize>, // input_regions
-  Vec<usize>, // logic_regions
-  Vec<usize>, // output_regions
-) {
+) -> RegionMap {
   // todo: Vec<Vec<>> not necessarily grid. Check!
   let (width, height) = (board.len(), board[0].len());
 
@@ -153,10 +187,15 @@ pub fn region_map_from_reselboard(
     } // Start recording a new region!
   }}} // for each x, y, if unvisited,
   // Returns
-  (
-    xy_to_region, region_to_xys, region_to_resel,
-    wire_regions, input_regions, logic_regions, output_regions
-  )
+  RegionMap {
+    xy_to_region,
+    region_to_xys,
+    region_to_resel,
+    wire_regions,
+    input_regions,
+    logic_regions,
+    output_regions
+  }
 }
 
 #[cfg(test)]
@@ -322,23 +361,20 @@ mod reselboard_tests {
       image_to_vecvecresel(&load_image_from_filename("./src/testing/test_05_06.png").unwrap()),
       image_to_vecvecresel(&load_image_from_filename("./src/testing/test_06.png").unwrap()),
     ] {
-      let (
-        xy_to_region, region_to_xys, region_to_resel,
-        wire_regions, input_regions, logic_regions, output_regions
-      ) = region_map_from_reselboard(&board);
+      let rm = region_map_from_reselboard(&board);
 
   
       let (width, height) = (board.len(), board[0].len());
-      let N_regions = region_to_xys.len();
+      let N_regions = rm.region_to_xys.len();
       let mut accounted_xy:       Vec<Vec<bool>>  = vec![vec![false; height as usize]; width as usize];
       let mut accounted_region: Vec<bool> = vec![false; N_regions];
 
       assert!(N_regions >= 1);
 
       for region_idx in 0..N_regions {
-        let resel_by_region = region_to_resel[region_idx];
+        let resel_by_region = rm.region_to_resel[region_idx];
 
-        for (x,y) in &region_to_xys[region_idx] {
+        for (x,y) in &rm.region_to_xys[region_idx] {
           // Assert all elements in the region are the same color
           let resel_by_coord = board[*x][*y];
           assert!(resel_by_coord.same(resel_by_region));
@@ -348,7 +384,7 @@ mod reselboard_tests {
           accounted_xy[*x][*y] = true;
 
           // Check xy_to_region is consistent
-          assert_eq!(xy_to_region[*x][*y], region_idx);       
+          assert_eq!(rm.xy_to_region[*x][*y], region_idx);       
         }
       }
 
@@ -359,7 +395,7 @@ mod reselboard_tests {
 
       // Account for each region_idx in the dense indices
       for region_iterator in [
-        vec![0], wire_regions, input_regions, logic_regions, output_regions
+        vec![0], rm.wire_regions, rm.input_regions, rm.logic_regions, rm.output_regions
       ] {
         for region_idx in region_iterator {
           assert!(!accounted_region[region_idx]);
@@ -392,18 +428,15 @@ mod reselboard_tests {
       ).unwrap()
     );
 
-    let (
-      xy_to_region, region_to_xys, region_to_resel,
-      wire_regions, input_regions, logic_regions, output_regions
-    ) = region_map_from_reselboard(&board);
+    let rm = region_map_from_reselboard(&board);
 
     assert_eq!(
-      xy_to_region,
+      rm.xy_to_region,
       vec![vec![1,2,3,0,1], vec![4,1,3,3,0], vec![0,5,3,3,1]]
     );
 
     assert_eq!(
-      region_to_xys,
+      rm.region_to_xys,
       vec![
         vec![(0,3), (1,4), (2,0)],
         vec![(0,0), (0,4), (2,4), (1,1)],
@@ -415,7 +448,7 @@ mod reselboard_tests {
     );
 
     assert_eq!(
-      region_to_resel,
+      rm.region_to_resel,
       vec![
         Resel::Empty,
         Resel::WireOrangeOn, Resel::WireLimeOn, Resel::WireSapphireOff,
@@ -423,10 +456,10 @@ mod reselboard_tests {
       ]
     );
 
-    assert_eq!(wire_regions,   vec![1,2,3]);
-    assert_eq!(input_regions,  vec![4,5]);
-    assert_eq!(logic_regions,  vec![]);
-    assert_eq!(output_regions, vec![]);
+    assert_eq!(rm.wire_regions,   vec![1,2,3]);
+    assert_eq!(rm.input_regions,  vec![4,5]);
+    assert_eq!(rm.logic_regions,  vec![]);
+    assert_eq!(rm.output_regions, vec![]);
   }
 
   #[test]
@@ -444,18 +477,15 @@ mod reselboard_tests {
       ).unwrap()
     );
 
-    let (
-      xy_to_region, region_to_xys, region_to_resel,
-      wire_regions, input_regions, logic_regions, output_regions
-    ) = region_map_from_reselboard(&board);
+    let rm = region_map_from_reselboard(&board);
 
     assert_eq!(
-      xy_to_region,
+      rm.xy_to_region,
       vec![vec![1,0,2], vec![1,3,3], vec![1,4,2], vec![1,2,5], vec![2,2,5]]
     );
 
     assert_eq!(
-      region_to_xys,
+      rm.region_to_xys,
       vec![
         vec![(0,1)],
         vec![(0,0), (1,0), (2,0), (3,0)],
@@ -467,7 +497,7 @@ mod reselboard_tests {
     );
 
     assert_eq!(
-      region_to_resel,
+      rm.region_to_resel,
       vec![
         Resel::Empty,
         Resel::WireLimeOn, Resel::WireOrangeOff,
@@ -476,21 +506,9 @@ mod reselboard_tests {
       ]
     );
 
-    assert_eq!(wire_regions,   vec![1,2,3]);
-    assert_eq!(input_regions,  vec![4,5]);
-    assert_eq!(logic_regions,  vec![]);
-    assert_eq!(output_regions, vec![]);
+    assert_eq!(rm.wire_regions,   vec![1,2,3]);
+    assert_eq!(rm.input_regions,  vec![4,5]);
+    assert_eq!(rm.logic_regions,  vec![]);
+    assert_eq!(rm.output_regions, vec![]);
   }
 }
-
-/*
-TODOs:
-- ~~Basic tests for RegionMapper~~
-- Test RegionMapper against expected values
-- Rework into `impl reselboard`?
-- Enforce Vec<Vec<Resel>> grid shape / fail if it doesn't have it?
-- RegionMapper: Also report:
-  - Dense class indices (wire_regions, input_regions, output_regions, logic_regions)
-  - region_to_resel
-- Go back and use magic ? to handle overflows?
-*/

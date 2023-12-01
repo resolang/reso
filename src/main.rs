@@ -1,5 +1,4 @@
 
-
 use std::collections::HashMap;
 use image::{
   GenericImageView, ImageResult, ImageBuffer, Rgba, RgbaImage, DynamicImage
@@ -13,15 +12,28 @@ mod reselboard;
 use reselboard::{
   image_to_vecvecresel,
   load_image_from_filename,
-  region_map_from_reselboard
+};
+mod regionmap;
+use regionmap::{
+  region_map_from_reselboard,
+  RegionMap
 };
 
 
 /*
 todo:
-- Finish ReselBoard
-- Start ResoCircuit
-- reso.dev
+- Split ReselBoard into `reselboard.rs`, `regionmap.rs`
+- Start AdjacencyMap.rs, then ResoCircuit.rs
+- resolang.dev?
+
+- Restructure:
+  - main
+  - ResoCircuit  Executable, uses AdjacencyMap
+  - AdjacencyMap Built from RegionMap
+  - RegionMap    Built from Vec<Vec<Resel>>
+  - ReselBoard   Vec<Vec<Resel>> and utilities
+  - Resel        Resel pixel
+
 */
 
 /*

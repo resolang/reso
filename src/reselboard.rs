@@ -82,7 +82,7 @@ let (
 /// region_to_resel[i]->Resel,
 /// wire_regions[i]->[i,...], input_regions, logic_regions, output_regions
 /// 
-fn region_map_from_reselboard(
+pub fn region_map_from_reselboard(
   board: &Vec<Vec<Resel>>
 ) -> (
   Vec<Vec<usize>>,          // xy_to_region
@@ -93,11 +93,14 @@ fn region_map_from_reselboard(
   Vec<usize>, // logic_regions
   Vec<usize>, // output_regions
 ) {
-  // todo: Vec<Vec<>> not necessarily grid.
+  // todo: Vec<Vec<>> not necessarily grid. Check!
   let (width, height) = (board.len(), board[0].len());
 
+  // visited and region_idx: Memory used only when compiling
   let mut visited:       Vec<Vec<bool>>  = vec![vec![false; height as usize]; width as usize];
   let mut region_idx:    usize = 0;
+  
+  // Region mapping data
   let mut xy_to_region:  Vec<Vec<usize>> = vec![vec![0; height as usize]; width as usize];
   let mut region_to_xys: Vec<Vec<(usize, usize)>> = vec![vec![]];
   let mut region_to_resel: Vec<Resel> = vec![Resel::Empty];
@@ -119,6 +122,7 @@ fn region_map_from_reselboard(
       region_idx += 1;
       region_to_xys.push(Vec::new());
       region_to_resel.push(resel);
+      println!("\nNew region {} with resel {:?}\nNeighbors:", region_idx, resel);
       
       if resel.is_wire()   { wire_regions.push(region_idx)   }
       if resel.is_input()  { input_regions.push(region_idx)  }
@@ -134,16 +138,25 @@ fn region_map_from_reselboard(
         xy_to_region[x][y] = region_idx;
         region_to_xys[region_idx].push((x,y));
         visited[x][y] = true;
+
         
         for (nx, ny) in get_neighbors(resel, x, y, width, height) {
-          if board[x][y].same(resel) && !visited[x][y] {
-            neighbors.push((nx, ny))
+          if board[nx][ny].same(resel) && !visited[nx][ny] {
+            // Only add unvisited neighbor coordinates of the same class
+            neighbors.push((nx, ny));
+            visited[nx][ny] = true;
+            println!("... ({},{}) sees ({},{})", x,y, nx, ny);
+
           } // If unvisited & same class, add to queue
         } // ... and check each surrounding neighbor.
       } // For each queued neighbor, record it... 
     } // Start recording a new region!
   }}} // for each x, y, if unvisited,
-  (xy_to_region, region_to_xys, region_to_resel, wire_regions, input_regions, logic_regions, output_regions)
+  // Returns
+  (
+    xy_to_region, region_to_xys, region_to_resel,
+    wire_regions, input_regions, logic_regions, output_regions
+  )
 }
 
 #[cfg(test)]
@@ -240,6 +253,9 @@ mod reselboard_tests {
       (99, 99,  1,  1, 100, 100, false, None),
       (99, 99,  0,  1, 100, 100, false, None),
 
+      // Cases added during debug
+      (0, 0, 0, -1, 3, 5, true, Some((0, 4))),
+
       // Consider dx, dy > 1
     ] {
       assert_eq!(
@@ -264,10 +280,22 @@ mod reselboard_tests {
       (Resel::Input, 0, 4, 10, 10, vec![(0,5), (1,4), (9,4), (0,3)]),
       // Test wire neighborhoods near bounds
       (Resel::WireLimeOff, 4, 0, 10, 10, vec![(4,1), (5,0), (3,0), (4,9), (5,1), (5,9), (3,1), (3,9)]),
+      // Specific tests to debug issues
+      (Resel::AND, 0, 0, 3, 5, vec![(0,1), (1,0), (2,0), (0,4)]),
+      (Resel::AND, 2, 4, 3, 5, vec![(0,4), (2,0), (1,4), (2,3)]),
+      (
+        Resel::WireOrangeOn, 0, 0, 3, 5,
+        vec![(1,0), (1,1), (0,1), (2,1), (2,0), (2,4), (0,4), (1,4)]
+      ),
+      (
+        Resel::WireOrangeOn, 2, 4, 3, 5,
+        vec![(0,4), (0,0), (2,0), (1,0), (1,4), (1,3), (2,3), (0,3)]
+      ),
     ] {
       let neighbors_1: HashSet<(usize, usize)> = get_neighbors(resel, x, y, width, height).into_iter().collect();
       let neighbors_2: HashSet<(usize, usize)> = neighbors.into_iter().collect();
       assert_eq!(neighbors_1, neighbors_2);
+
     }
   }
 
@@ -312,11 +340,11 @@ mod reselboard_tests {
         for (x,y) in &region_to_xys[region_idx] {
           // Assert all elements in the region are the same color
           let resel_by_coord = board[*x][*y];
-          assert_eq!(resel_by_coord, resel_by_region);
+          assert!(resel_by_coord.same(resel_by_region));
 
           // Account each x,y
           assert!(!accounted_xy[*x][*y]);
-          accounted_xy[*x][*y] = true;   
+          accounted_xy[*x][*y] = true;
 
           // Check xy_to_region is consistent
           assert_eq!(xy_to_region[*x][*y], region_idx);       
@@ -342,12 +370,21 @@ mod reselboard_tests {
       for region_idx in 0..N_regions {
         assert!(accounted_region[region_idx])
       }
+
+      // TODO: How is it that duplicates in `region_to_xys` skipped the tsts
     }    
   }
 
 
   #[test]
-  fn test_regon_map_01() {
+  fn test_region_map_01() {
+    /*
+    This is a fragile test.
+    It assumes an order to the elements returned, despite 
+    region_map_from_reselboard not guaranteeing such an order.
+
+    Someone better at Rust should rework this.
+    */
     let board = image_to_vecvecresel(
       &load_image_from_filename(
         "./src/testing/test_01_new-palette.png"
@@ -359,10 +396,37 @@ mod reselboard_tests {
       wire_regions, input_regions, logic_regions, output_regions
     ) = region_map_from_reselboard(&board);
 
-    
+    assert_eq!(
+      xy_to_region,
+      vec![vec![1,2,3,0,1], vec![4,1,3,3,0], vec![0,5,3,3,1]]
+    );
 
+    assert_eq!(
+      region_to_xys,
+      vec![
+        vec![(0,3), (1,4), (2,0)],
+        vec![(0,0), (0,4), (2,4), (1,1)],
+        vec![(0,1)],
+        vec![(0,2),(2,2),(2,3),(1,3),(1,2)],
+        vec![(1,0)],
+        vec![(2,1)]
+      ]
+    );
+
+    assert_eq!(
+      region_to_resel,
+      vec![
+        Resel::Empty,
+        Resel::WireOrangeOn, Resel::WireLimeOn, Resel::WireSapphireOff,
+        Resel::Input, Resel::Input
+      ]
+    );
+
+    assert_eq!(wire_regions,   vec![1,2,3]);
+    assert_eq!(input_regions,  vec![4,5]);
+    assert_eq!(logic_regions,  vec![]);
+    assert_eq!(output_regions, vec![]);
   }
-  // todo: Take an example PNG and write tests specifically for it
 }
 
 /*

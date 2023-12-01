@@ -3,22 +3,6 @@ reselboard.rs
 
 Provides operations related to Vec<Vec<Resel>>.
 
-TODOs:
-- ~~Struct with {board, image, width, height}~~
-- ~~Change get_neighbors to take in resel.delta_neighbors()~~
-- ~~impl `reselboard.get_neighbors(x,y)` wrapping `get_neighbors`~~
-  - Test above?
-- ~~Rework RegionMap to use ReselBoard~~
-- ~~Create ReselBoard from Vec<Vec<Resel>>~~
-  - and have it create the image too, optionally
-- impl `reselboard.set_resel(resel, x, y)`, updates pixel too
-- impl `reselboard.set_pixel(Rgba, x, y)`, updates resel too
-- Cleanup:
-  - Fix this doc
-  - Re-order / rename functions below
-- Handle overflows in neighbor code; perhaps use `?`
-
-
 Provides:
   ReselBoard{
     board: Vec<Vec<Resel>>,
@@ -33,6 +17,18 @@ Provides:
 Also has:
   delta_to_neighbor(x, y, dx, dy, width, height, wrap) -> (x+dx %w, y+dy %h)
   get_neighbors(deltas, x, y, width, height) -> convenient list of coordinates
+
+
+TODOs:
+- Test ReselBoard::get_neighbors?
+- ReselBoard from Vec<Vec<Resel>>: Have it create image?
+- impl `reselboard.set_resel(resel, x, y)`, updates pixel too
+- impl `reselboard.set_pixel(Rgba, x, y)`, updates resel too
+- Cleanup:
+  - Fix this doc
+  - Re-order / rename functions below
+- Handle overflows in neighbor code; perhaps use `?`
+
 */
 use crate::resel::{Resel};
 use image::{Rgba, DynamicImage, GenericImageView};

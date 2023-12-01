@@ -3,9 +3,7 @@ regionmap.rs
 
 Identify the regions in a Reselboard Vec<Vec<Resel>>.
 
-pub fn region_map_from_reselboard(
-  board: &Vec<Vec<Resel>>
-) -> RegionMap
+pub fn region_map_from_reselboard(board: &Vec<Vec<Resel>>) -> RegionMap
 
 pub struct RegionMap {
   xy_to_region: Vec<Vec<usize>>,            // [x][y] -> i
@@ -17,6 +15,10 @@ pub struct RegionMap {
   input_regions:    Vec<usize>,
   logic_regions:    Vec<usize>,
   output_regions:   Vec<usize>,
+
+  // reverse dense index, region_index to index of relevant dense index
+  reverse_dense: Vec<usize>
+  // e.g. ri == wire_regions[reverse_dense[ri]], if ri corresponds to a wire
 }
 
 TODO:
@@ -305,6 +307,7 @@ mod reselboard_tests {
     assert_eq!(rm.input_regions,  vec![4,5]);
     assert_eq!(rm.logic_regions,  vec![]);
     assert_eq!(rm.output_regions, vec![]);
+    assert_eq!(rm.reverse_dense,  vec![0,0,1,2,0,1]);
   }
 
   #[test]
@@ -351,11 +354,16 @@ mod reselboard_tests {
       ]
     );
 
+    // ... huh. these ended up with the exact same dense indices
     assert_eq!(rm.wire_regions,   vec![1,2,3]);
     assert_eq!(rm.input_regions,  vec![4,5]);
     assert_eq!(rm.logic_regions,  vec![]);
     assert_eq!(rm.output_regions, vec![]);
+    assert_eq!(rm.reverse_dense,  vec![0,0,1,2,0,1]);
   }
+
+  // todo: We could use more tests for more examples
+  // todo: The above tests could be made more robust. They're fragile to differences in ordering
 }
 
 // eof

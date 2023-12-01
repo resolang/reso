@@ -1,6 +1,14 @@
 ARCHITECTURE and RESO CONCEPTS
 ===
 
+TODO: This needs to be redone.
+
+- Pixels/characters --> Resels
+- Resels --> Regions, with Resel classes and indices
+- ResoCircuit, with a graph of Resel nodes (regions) 
+
+---
+
 Reso is a toy for simulating logic circuits defined by pixel art. It does so by compiling regions of pixels into their corresponding logical elements, and compiling a logic graph from adjacent regions of pixels. The major inspiration is Minecraft's redstone and esolangs like Piet.
 
 # Summary

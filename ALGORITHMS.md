@@ -22,7 +22,7 @@ There are a few particulars to our implementation:
 4. The algorithm maintains a `visited: Vec<Vec<bool>>` to keep track of which pixels were and were not visited.
 5. The algorithm outputs a `region_map: Vec<Vec<usize>>`, where `0` represents `Resel::Empty`. So, region indices start at 1.
 
-Here is the pseudocode for the region mapping algorithm.
+Here is the pseudocode for the region mapping algorithm. This might not be kept up to date; refer to `reselboard.rs`.
 
 ```
 width, height = board.width, board.height

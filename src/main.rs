@@ -1,19 +1,47 @@
-mod resel;
-mod reselboard;
 
-/*
+
 use std::collections::HashMap;
-use image::{GenericImageView, ImageResult, ImageBuffer, Rgba, RgbaImage, DynamicImage};
-mod resel;
-use resel::{
-  Resel,
-  image_to_reselboard, is_resel_same_class
+use image::{
+  GenericImageView, ImageResult, ImageBuffer, Rgba, RgbaImage, DynamicImage
 };
 
-*/
+mod resel;
+use resel::{Resel
+};
 
+mod reselboard;
+use reselboard::{
+  image_to_vecvecresel,
+  load_image_from_filename,
+  region_map_from_reselboard
+};
+
+//fn example_main_debug_a_board() {
 fn main() {
-  println!("hello world")
+  let board = image_to_vecvecresel(
+    &load_image_from_filename(
+      "./src/testing/test_01_new-palette.png"
+    ).unwrap()
+  );
+
+  let (
+    xy_to_region,
+    region_to_xys,
+    region_to_resel,
+    wire_regions,
+    input_regions,
+    logic_regions,
+    output_regions
+  ) = region_map_from_reselboard(&board);
+
+  println!("xy_to_region = {:?}", xy_to_region);
+  println!("region_to_xys = {:?}", region_to_xys);
+  println!("region_to_resel = {:?}", region_to_resel);
+  println!("wire_regions = {:?}", wire_regions);
+  println!("input_regions = {:?}", input_regions);
+  println!("logic_regions = {:?}", logic_regions);
+  println!("output_regions = {:?}", output_regions);
+
 }
 
 /*

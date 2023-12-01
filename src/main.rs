@@ -16,94 +16,15 @@ use reselboard::{
   region_map_from_reselboard
 };
 
-//fn example_main_debug_a_board() {
-fn main() {
-  let board = image_to_vecvecresel(
-    &load_image_from_filename(
-      "./src/testing/test_01_new-palette.png"
-    ).unwrap()
-  );
-
-  let (
-    xy_to_region,
-    region_to_xys,
-    region_to_resel,
-    wire_regions,
-    input_regions,
-    logic_regions,
-    output_regions
-  ) = region_map_from_reselboard(&board);
-
-  println!("xy_to_region = {:?}", xy_to_region);
-  println!("region_to_xys = {:?}", region_to_xys);
-  println!("region_to_resel = {:?}", region_to_resel);
-  println!("wire_regions = {:?}", wire_regions);
-  println!("input_regions = {:?}", input_regions);
-  println!("logic_regions = {:?}", logic_regions);
-  println!("output_regions = {:?}", output_regions);
-
-}
 
 /*
+todo:
+- Finish ReselBoard
+- Start ResoCircuit
+- reso.dev
+*/
 
-
-/// Given a reselboard and the mapping between regions and resels,
-/// get the resel class at each region, plus dense per-class indices.
-/// (The dense class indices are used at runtime.)
-/// Outputs: class_by_region, wire_nodes, input_nodes, output_nodes, logic_nodes
-fn class_indices_from_reselboard_and_regions(
-  reselboard: &Vec<Vec<Resel>>,
-  region_by_resel: &Vec<Vec<usize>>,
-  resels_by_region: &Vec<Vec<(usize, usize)>>,
-) -> (Vec<Resel>, Vec<usize>, Vec<usize>, Vec<usize>, Vec<usize>) {
-  let mut class_by_region = vec![Resel::Empty; resels_by_region.len()];
-  let mut wire_nodes = Vec::new();
-  let mut input_nodes = Vec::new();
-  let mut output_nodes = Vec::new();
-  let mut logic_nodes = Vec::new();
-
-  for (region_idx, resels) in resels_by_region.iter().enumerate() {
-    // get resel_class from the first pixel in the region,
-    // setting Resel::Empty if the region is empty
-    let resel_class = match resels.len() {
-      0 => Resel::Empty,
-      _ => reselboard[resels[0].0][resels[0].1]
-    };
-    
-    // Update our values
-    class_by_region[region_idx] = resel_class;
-    match resel_class {
-      Resel::WireOrangeOff | Resel::WireOrangeOn |
-      Resel::WireSapphireOff | Resel::WireSapphireOn |
-      Resel::WireLimeOff | Resel::WireLimeOn => {
-        wire_nodes.push(region_idx);
-      },
-      Resel::Input => {
-        input_nodes.push(region_idx);
-      },
-      Resel::Output => {
-        output_nodes.push(region_idx);
-      },
-      Resel::AND | Resel::XOR => {
-        logic_nodes.push(region_idx);
-      },
-      _ => {}
-    }
-  }
-
-  /*
-  e.g.
-  class_by_region: [
-    Empty, WireOrangeOn, WireLimeOn, WireSapphireOff, Input, Output, AND, Input, Empty
-  ]
-  wire_nodes:      [1, 2, 3,]
-  input_nodes:     [4, 7,]
-  output_nodes:    [5,]
-  logic_nodes:     [6,]
-  */
-  (class_by_region, wire_nodes, input_nodes, output_nodes, logic_nodes)
-}
-
+/*
 // todo lynn! current plan:
 //  - Function to get adjacent region indices from a region
 //  - Use that to populate input_to_wire, etc. five vars

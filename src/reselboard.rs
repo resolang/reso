@@ -16,27 +16,23 @@ TODOs:
 - Cleanup:
   - Fix this doc
   - Re-order / rename functions below
-
-Public functions:
-pub fn load_image_from_filename(filename: &str) -> Option<DynamicImage>
-pub fn image_to_vecvecresel(img: &DynamicImage) -> Vec<Vec<Resel>>
-pub fn image_to_reselboard(image: DynamicImage) -> ReselBoard
-
-// Perform |(x,y)| -> (x+dx %w, y+dy %h), with bounds and wrapping 
-pub fn delta_to_neighbor(x, y, dx, dy, width, height, wrap)
-  -> Option<(x+dx, y+dy)>
-
-// Get all neighbor coordinates of Resel at (x,y) using delta_to_neighbor
-get_neighbors(resel, x, y, width, height) -> Vec<(x,y)>
+- Handle overflows in neighbor code; perhaps use `?`
 
 
-todo:
-- Consider making struct ReselBoard which holds Vec<Vec<Resel>> and image?
-- Consider making a region_to_dense index?
-  (If we need to reverse dense index)
-- maybe `get_neighbors` should take `neighbors: vec<(usize, usize)>`
-  (e.g. call with resel.delta_neighbors()?
+Provides:
+  ReselBoard{
+    board: Vec<Vec<Resel>>,
+    image: Option<DynamicImage>,
+    width: usize, height: usize
+  }
 
+  image_to_vecvecresel(img: &DynamicImage) -> Vec<Vec<Resel>>
+  image_to_reselboard(image: DynamicImage) -> ReselBoard
+  load_image_from_filename(filename: &str) -> Option<DynamicImage>
+
+Also has:
+  delta_to_neighbor(x, y, dx, dy, width, height, wrap) -> (x+dx %w, y+dy %h)
+  get_neighbors(deltas, x, y, width, height) -> convenient list of coordinates
 */
 use crate::resel::{Resel};
 use image::{Rgba, DynamicImage, GenericImageView};
@@ -94,6 +90,19 @@ pub fn image_to_vecvecresel(img: &DynamicImage) -> Vec<Vec<Resel>> {
   reselboard
 }
 
+impl ReselBoard {
+  pub fn get_neighbors(&self, x: usize, y:usize) -> Vec<(usize, usize)> {
+    get_neighbors(
+      self.board[x][y].delta_neighbors(),
+      x,
+      y,
+      self.width,
+      self.height
+    )
+  }
+}
+
+
 // delta_to_neighbor(x, y, dx, dy, width, height, wrap)
 // returns Some (x+dx, y+dy), None if out of bounds
 pub fn delta_to_neighbor(
@@ -122,7 +131,7 @@ pub fn delta_to_neighbor(
   }
 }
 
-// get_neighbors(neighbors, x, y, width, height) -> convenient list of coordinates
+// get_neighbors(deltas, x, y, width, height) -> convenient list of coordinates
 pub fn get_neighbors(
   deltas: Vec<(isize, isize)>, x: usize, y: usize, width: usize, height: usize
 ) -> Vec<(usize, usize)> {
@@ -134,17 +143,6 @@ pub fn get_neighbors(
     .collect()
 }
 
-impl ReselBoard {
-  pub fn get_neighbors(&self, x: usize, y:usize) -> Vec<(usize, usize)> {
-    get_neighbors(
-      self.board[x][y].delta_neighbors(),
-      x,
-      y,
-      self.width,
-      self.height
-    )
-  }
-}
 
 #[cfg(test)]
 mod reselboard_tests {

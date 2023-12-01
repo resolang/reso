@@ -22,13 +22,8 @@ use regionmap::{
 
 /*
 todo:
-- Reselboard.rs:
-  - ~~Struct with {board, image, width, height}~~
-  - ~~Change get_neighbors to take in resel.delta_neighbors()~~
-  - impl `reselboard.get_neighbors(x,y)` wrapping `get_neighbors`
-  - Rework RegionMap to use ReselBoard
-  - impl `reselboard.set_resel(resel, x, y)`, updates pixel too
-  - impl `reselboard.set_pixel(Rgba, x, y)`, updates resel too
+- Reselboard.rs: See file
+- regionmap.rs: reverse dense index, see file
 
 - Then:
   - AdjacencyMap.rs

@@ -3,8 +3,6 @@ regionmap.rs
 
 Identify the regions in a Reselboard Vec<Vec<Resel>>.
 
-Used with adjacencymap.rs to create a ResoCircuit
-
 pub fn region_map_from_reselboard(
   board: &Vec<Vec<Resel>>
 ) -> RegionMap
@@ -22,16 +20,21 @@ pub struct RegionMap {
 }
 
 TODO:
-- Make AdjacencyMap from RegionMap to build graph:
-  wires -> inputs
-  inputs -> logic
-  inputs -> outputs
-  logic -> outputs
-  outputs -> wires
 
-- Handle overflows in neighbor code; perhaps use `?`
-- region mapper should probably return something like Result<Option<T>, E>
-- Find some way to make generic and publish the CCL algorithm
+  - Consider making a reverse dense region index? (If needed)
+    - e.g. wire_regions =[1,3,5], input_regions=[2,], output_regions=[4,]
+    - then reverse_dense = [
+        0, // empty
+        0, // wire_regions[0]   = 1
+        0, // input_regions[0]  = 2
+        1, // wire_regions[1]   = 3
+        0, // output_regions[2] = 4
+        2, // wire_regions[2]   = 5
+      ]
+    - 
+  - region mapper should probably return something like Result<Option<T>, E>
+  - Find some way to make generic and publish the CCL algorithm
+
 */
 use crate::resel::{Resel};
 use crate::reselboard::{
@@ -44,10 +47,24 @@ pub struct RegionMap {
   region_to_resel:  Vec<Resel>,             // [Resel::Empty, Resel::And, ...]
 
   // dense class indices, for iterating over wires/inputs/logics/outputs
+  // list of region indices; position in list is an inherent "dense index"
   wire_regions:     Vec<usize>,
   input_regions:    Vec<usize>,
   logic_regions:    Vec<usize>,
   output_regions:   Vec<usize>,
+
+  /* reverse dense index
+  e.g. given region_index ri, what is the dense index?
+  assume region_to_resel(ri).is_wire()
+  
+  O(logn): wire_regions.iter().position(|&wire_ri| wire_ri == ri)
+  O(1):    reverse_dense[ri]
+  */
+  //reverse_dense: Vec<usize>
+  // TODO Lynn: From here!
+  // - rework region map func
+  // - rework basic tests for region mapper
+  // - rework explicit tests for region mapper
 }
 
 /*

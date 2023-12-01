@@ -22,18 +22,20 @@ use regionmap::{
 
 /*
 todo:
-- Split ReselBoard into `reselboard.rs`, `regionmap.rs`
-- Start AdjacencyMap.rs, then ResoCircuit.rs
-- resolang.dev?
+- Reselboard.rs:
+  - Struct with {board, image, width, height}
+  - Change get_neighbors to take in resel.delta_neighbors()
+  - impl `reselboard.get_neighbors(x,y)` wrapping `get_neighbors`
+  - impl `reselboard.set_resel(resel, x, y)`, updates pixel too
+  - impl `reselboard.set_pixel(Rgba, x, y)`, updates resel too
 
-- Restructure:
-  - main
-  - ResoCircuit  Executable, uses AdjacencyMap
-  - AdjacencyMap Built from RegionMap
-  - RegionMap    Built from Vec<Vec<Resel>>
-  - ReselBoard   Vec<Vec<Resel>> and utilities
-  - Resel        Resel pixel
-
+- Then:
+  - AdjacencyMap.rs
+  - ResoCircuit.rs
+  - main CLI
+- Far later:
+  - resolang.dev site
+  - IDE
 */
 
 /*

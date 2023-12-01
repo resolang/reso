@@ -7,8 +7,20 @@ Public functions:
 pub fn load_image_from_filename(filename: &str) -> Option<DynamicImage>
 pub fn image_to_vecvecresel(img: &DynamicImage) -> Vec<Vec<Resel>>
 
+// Perform |(x,y)| -> (x+dx %w, y+dy %h), with bounds and wrapping 
+pub fn delta_to_neighbor(x, y, dx, dy, width, height, wrap)
+  -> Option<(x+dx, y+dy)>
+
+// Get all neighbor coordinates of Resel at (x,y) using delta_to_neighbor
+get_neighbors(resel, x, y, width, height) -> Vec<(x,y)>
+
 todo:
 - Consider making struct ReselBoard which holds Vec<Vec<Resel>> and image?
+- Consider making a region_to_dense index?
+  (If we need to reverse dense index)
+- maybe `get_neighbors` should take `neighbors: vec<(usize, usize)>`
+  (e.g. call with resel.delta_neighbors()?
+  
 */
 use crate::resel::{Resel};
 use image::{Rgba, DynamicImage, GenericImageView};
@@ -33,6 +45,46 @@ pub fn image_to_vecvecresel(img: &DynamicImage) -> Vec<Vec<Resel>> {
     }
   }
   reselboard
+}
+
+// delta_to_neighbor(x, y, dx, dy, width, height, wrap)
+// returns Some (x+dx, y+dy), None if out of bounds
+pub fn delta_to_neighbor(
+  x: usize, y: usize,
+  dx: isize, dy: isize,
+  width: usize, height: usize,
+  wrap: bool
+) -> Option<(usize, usize)> {
+  // todo: handle overflows, write tests for that
+  let ax = x as isize + dx;
+  let ay = y as isize + dy;
+  if wrap { // wrap: No "out-of-bounds" to consider, just return (x+dx)%width
+    Some(
+      (
+        ((ax + width as isize) as usize % width),
+        ((ay + height as isize) as usize % height),
+      )
+    )
+  } else { // No wrap; check (ax,ay) within bounds
+    if (ax >= width as isize) || (ax < 0) || (ay >= height as isize) || (ay < 0)
+    { // Out of bounds, return None
+      None
+    } else { // Within bounds, just return (ax, ay)
+      Some((ax as usize, ay as usize))
+    }
+  }
+}
+
+// get_neighbors(resel, x, y, width, height) -> convenient list of coordinates
+pub fn get_neighbors(
+  resel: Resel, x: usize, y: usize, width: usize, height: usize
+) -> Vec<(usize, usize)> {
+  // Given resel class + x,y + width,height, get the neighborhood of (x,y) coordinates
+
+  resel.delta_neighbors()
+    .into_iter()
+    .filter_map(|(dx, dy)| delta_to_neighbor(x, y, dx, dy, width, height, true))
+    .collect()
 }
 
 #[cfg(test)]
@@ -81,6 +133,100 @@ mod reselboard_tests {
     }
   }
 
+
+  #[test]
+  fn test_delta_to_neighbor() {
+    for (x, y, dx, dy, width, height, wrap, expected) in [
+      // Base case
+      (0, 0, 0, 0, 1, 1, true, Some((0, 0))),
+      // Generic cases
+      (11, 11,  1,  0, 100, 100, true, Some((12,11))),
+      (11, 11,  0,  0, 100, 100, true, Some((11,11))),
+      (11, 11, -1, -1, 100, 100, true, Some((10,10))),
+      (11, 11, -1,  1, 100, 100, true, Some((10,12))),
+      (11, 11,  1,  0, 100, 100, false, Some((12,11))), // Repeat but with wrap=false
+      (11, 11,  0,  0, 100, 100, false, Some((11,11))),
+      (11, 11, -1, -1, 100, 100, false, Some((10,10))),
+      (11, 11, -1,  1, 100, 100, false, Some((10,12))),
+      // Cases forcing a wrap (from each border/corner)
+      (0, 0, -1,  0, 100, 100, true, Some((99,0))),
+      (0, 0, -1, -1, 100, 100, true, Some((99,99))),
+      (0, 0,  0, -1, 100, 100, true, Some((0,99))),
+
+      (99, 0,  1,  0, 100, 100, true, Some((0,0))),
+      (99, 0,  1, -1, 100, 100, true, Some((0,99))),
+      (99, 0,  0, -1, 100, 100, true, Some((99,99))),
+
+      (0, 99, -1,  0, 100, 100, true, Some((99,99))),
+      (0, 99, -1,  1, 100, 100, true, Some((99,0))),
+      (0, 99,  0,  1, 100, 100, true, Some((0,0))),
+
+      (99, 99,  1,  0, 100, 100, true, Some((0,99))),
+      (99, 99,  1,  1, 100, 100, true, Some((0,0))),
+      (99, 99,  0,  1, 100, 100, true, Some((99,0))),
+
+      // Cases forcing a wrap but wrap=false
+      (0, 0, -1,  0, 100, 100, false, None),
+      (0, 0, -1, -1, 100, 100, false, None),
+      (0, 0,  0, -1, 100, 100, false, None),
+
+      (99, 0,  1,  0, 100, 100, false, None),
+      (99, 0,  1, -1, 100, 100, false, None),
+      (99, 0,  0, -1, 100, 100, false, None),
+
+      (0, 99, -1,  0, 100, 100, false, None),
+      (0, 99, -1,  1, 100, 100, false, None),
+      (0, 99,  0,  1, 100, 100, false, None),
+
+      (99, 99,  1,  0, 100, 100, false, None),
+      (99, 99,  1,  1, 100, 100, false, None),
+      (99, 99,  0,  1, 100, 100, false, None),
+
+      // Cases added during debug
+      (0, 0, 0, -1, 3, 5, true, Some((0, 4))),
+
+      // Consider dx, dy > 1
+    ] {
+      assert_eq!(
+        delta_to_neighbor(x,y,dx,dy,width,height,wrap),
+        expected
+      )
+
+      // Not tested: Overflow during isize/usize conversion
+    }
+  }
+
+  #[test]
+  fn test_get_neighbors() {
+    // get_neighbors(resel: Resel, x: usize, y: usize, width: usize, height: usize) -> Vec<(usize, usize)>
+    for (resel, x, y, width, height, neighbors) in [
+      (Resel::Empty, 0, 0, 1, 1, Vec::<(usize, usize)>::new()),
+      // Test non-wire neighborhoods within bounds
+      (Resel::AND, 4, 4, 10, 10, vec![(4,5), (5,4), (3,4), (4,3)]),
+      // Test wire neighborhoods within bounds
+      (Resel::WireOrangeOn, 4, 4, 10, 10, vec![(4,5), (5,4), (3,4), (4,3), (5,5), (5,3), (3,5), (3,3)]),
+      // Test non-wire neighborhoods near bounds
+      (Resel::Input, 0, 4, 10, 10, vec![(0,5), (1,4), (9,4), (0,3)]),
+      // Test wire neighborhoods near bounds
+      (Resel::WireLimeOff, 4, 0, 10, 10, vec![(4,1), (5,0), (3,0), (4,9), (5,1), (5,9), (3,1), (3,9)]),
+      // Specific tests to debug issues
+      (Resel::AND, 0, 0, 3, 5, vec![(0,1), (1,0), (2,0), (0,4)]),
+      (Resel::AND, 2, 4, 3, 5, vec![(0,4), (2,0), (1,4), (2,3)]),
+      (
+        Resel::WireOrangeOn, 0, 0, 3, 5,
+        vec![(1,0), (1,1), (0,1), (2,1), (2,0), (2,4), (0,4), (1,4)]
+      ),
+      (
+        Resel::WireOrangeOn, 2, 4, 3, 5,
+        vec![(0,4), (0,0), (2,0), (1,0), (1,4), (1,3), (2,3), (0,3)]
+      ),
+    ] {
+      let neighbors_1: HashSet<(usize, usize)> = get_neighbors(resel, x, y, width, height).into_iter().collect();
+      let neighbors_2: HashSet<(usize, usize)> = neighbors.into_iter().collect();
+      assert_eq!(neighbors_1, neighbors_2);
+
+    }
+  }
 }
 
 // eof

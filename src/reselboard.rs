@@ -272,7 +272,6 @@ mod reselboard_tests {
   }
 
 
-  // TODO from here: More boards!
   #[test]
   fn test_regon_map_basic() {
     for board in [
@@ -308,24 +307,28 @@ mod reselboard_tests {
       assert!(N_regions >= 1);
 
       for region_idx in 0..N_regions {
+        let resel_by_region = region_to_resel[region_idx];
+
         for (x,y) in &region_to_xys[region_idx] {
-          // Assert all are the same color
+          // Assert all elements in the region are the same color
           let resel_by_coord = board[*x][*y];
-          let resel_by_region = region_to_resel[region_idx];
           assert_eq!(resel_by_coord, resel_by_region);
 
           // Account each x,y
           assert!(!accounted_xy[*x][*y]);
-          accounted_xy[*x][*y] = true;          
+          accounted_xy[*x][*y] = true;   
+
+          // Check xy_to_region is consistent
+          assert_eq!(xy_to_region[*x][*y], region_idx);       
         }
       }
 
-      // Now, each `x,y` should be accounted
+      // Now, each `x,y` should be accounted for
       for x in 0..width{ for y in 0..height {
         assert!(accounted_xy[x][y]);
       }}
 
-      // Account each region_idx
+      // Account for each region_idx in the dense indices
       for region_iterator in [
         vec![0], wire_regions, input_regions, logic_regions, output_regions
       ] {
@@ -341,11 +344,30 @@ mod reselboard_tests {
       }
     }    
   }
+
+
+  #[test]
+  fn test_regon_map_01() {
+    let board = image_to_vecvecresel(
+      &load_image_from_filename(
+        "./src/testing/test_01_new-palette.png"
+      ).unwrap()
+    );
+
+    let (
+      xy_to_region, region_to_xys, region_to_resel,
+      wire_regions, input_regions, logic_regions, output_regions
+    ) = region_map_from_reselboard(&board);
+
+    
+
+  }
+  // todo: Take an example PNG and write tests specifically for it
 }
 
 /*
 TODOs:
-- Basic tests for RegionMapper
+- ~~Basic tests for RegionMapper~~
 - Test RegionMapper against expected values
 - Rework into `impl reselboard`?
 - Enforce Vec<Vec<Resel>> grid shape / fail if it doesn't have it?

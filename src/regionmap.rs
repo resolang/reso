@@ -51,10 +51,6 @@ pub struct RegionMap {
   O(1):    reverse_dense[ri]
   */
   reverse_dense: Vec<usize>
-  // TODO Lynn: From here!
-  // - rework region map func
-  // - rework basic tests for region mapper
-  // - rework explicit tests for region mapper
 }
 
 /*
@@ -254,8 +250,6 @@ mod reselboard_tests {
       for region_idx in 0..N_regions {
         assert!(accounted_region[region_idx])
       }
-
-      // TODO: How is it that duplicates in `region_to_xys` skipped the tsts
     }    
   }
 

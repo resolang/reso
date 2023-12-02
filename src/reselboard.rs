@@ -7,7 +7,8 @@ Provides:
   ReselBoard{
     board: Vec<Vec<Resel>>,
     image: Option<DynamicImage>,
-    width: usize, height: usize
+    width: usize,
+    height: usize
   }
 
   image_to_vecvecresel(img: &DynamicImage) -> Vec<Vec<Resel>>
@@ -22,6 +23,7 @@ Also has:
 TODOs:
 - Test ReselBoard::get_neighbors?
 - ReselBoard from Vec<Vec<Resel>>: Have it create image?
+- ReselBoard `image` can be char or image? Have both?
 - impl `reselboard.set_resel(resel, x, y)`, updates pixel too
 - impl `reselboard.set_pixel(Rgba, x, y)`, updates resel too
 - Cleanup:

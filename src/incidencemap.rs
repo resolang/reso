@@ -89,15 +89,16 @@ pub fn adjacencymap_from_regionmap(
     xy_to_region:     Vec<Vec<usize>>,
     region_to_xys:    Vec<Vec<(usize, usize)>>,
     region_to_resel:  Vec<Resel>,
-
     wire_regions:     Vec<usize>,
     input_regions:    Vec<usize>,
     logic_regions:    Vec<usize>,
     output_regions:   Vec<usize>,
-
     reverse_dense:    Vec<usize>
   }
+  */
 
+
+  /*
   for each ri in rm.wire_regions,
     for each (x,y) in rm.region_to_xys:
       // iterate over neighbors

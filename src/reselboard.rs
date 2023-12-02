@@ -30,6 +30,7 @@ TODOs:
   - Fix this doc
   - Re-order / rename functions below
 - Handle overflows in neighbor code; perhaps use `?`
+- Ensure sorted ordering on outputs?
 
 */
 use crate::resel::{Resel};

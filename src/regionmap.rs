@@ -7,6 +7,8 @@ pub fn region_map_from_reselboard(board: &Vec<Vec<Resel>>) -> RegionMap
 
 pub struct RegionMap {
   xy_to_region: Vec<Vec<usize>>,            // [x][y] -> i
+  width: usize,
+  height: usize,
   region_to_xys: Vec<Vec<(usize, usize)>>,  // [i] -> [(x,y),...]
   region_to_resel:  Vec<Resel>,             // [Resel::Empty, Resel::And, ...]
   
@@ -21,18 +23,31 @@ pub struct RegionMap {
   // e.g. ri == wire_regions[reverse_dense[ri]], if ri corresponds to a wire
 }
 
+impl RegionMap {
+  pub fn get_adjacent_regions(region: usize) -> Vec<usize> // list of regions
+
+}
+
 TODO:
+  - add `width`, `height` to `RegionMap`? Or even a whole `ReselBoard`?
+  - `impl get_adjacent_regions(ri: usize) -> regions: Vec<usize>`
+  - Ensure sorted ordering on all outputs?
+
   - region mapper should probably return something like Result<Option<T>, E>
   - Find some way to make generic and publish the CCL algorithm
+  - Make some of these `impls`?
 
 */
 use crate::resel::{Resel};
 use crate::reselboard::{
-  ReselBoard
+  ReselBoard, get_neighbors
 };
 
 pub struct RegionMap {
   xy_to_region: Vec<Vec<usize>>,            // [x][y] -> i
+  width: usize,
+  height: usize,
+
   region_to_xys: Vec<Vec<(usize, usize)>>,  // [i] -> [(x,y),...]
   region_to_resel:  Vec<Resel>,             // [Resel::Empty, Resel::And, ...]
 
@@ -51,6 +66,30 @@ pub struct RegionMap {
   O(1):    reverse_dense[ri]
   */
   reverse_dense: Vec<usize>
+}
+
+impl RegionMap {
+  pub fn get_adjacent_regions(&self, region: usize) -> Vec<usize> {
+    let mut adjacent_regions = vec![];
+
+    for (x,y) in &self.region_to_xys[region] {
+      for (nx, ny) in get_neighbors(
+        vec![(1,0),(0,1),(-1,0),(0,-1)], // adjacencies are only orthogonal, wire or not
+        *x, *y, self.width, self.height
+      ) {
+        let neighbor_region = self.xy_to_region[nx][ny];
+        if (
+          region != neighbor_region
+          && !adjacent_regions.contains(&neighbor_region)
+        ) {
+          adjacent_regions.push(neighbor_region)
+        }
+      }
+    }
+
+    adjacent_regions.sort();
+    adjacent_regions
+  }
 }
 
 /*
@@ -143,6 +182,8 @@ pub fn region_map_from_reselboard(
   // Returns
   RegionMap {
     xy_to_region,
+    width,
+    height,
     region_to_xys,
     region_to_resel,
     wire_regions,
@@ -152,6 +193,8 @@ pub fn region_map_from_reselboard(
     reverse_dense
   }
 }
+
+
 
 
 #[cfg(test)]
@@ -165,7 +208,6 @@ mod reselboard_tests {
     vecvecresel_to_reselboard,
     ReselBoard
   };
-
 
 
   #[test]
@@ -220,10 +262,10 @@ mod reselboard_tests {
             assert_eq!(
               region_idx,
               { // Get appropriate dense index
-                if resel_by_region.is_wire()   { rm.wire_regions.clone() } else
-                if resel_by_region.is_input()  { rm.input_regions.clone() } else
-                if resel_by_region.is_logic()  { rm.logic_regions.clone() } else
-                if resel_by_region.is_output() { rm.output_regions.clone() } else
+                if resel_by_region.is_wire()   { &rm.wire_regions } else
+                if resel_by_region.is_input()  { &rm.input_regions } else
+                if resel_by_region.is_logic()  { &rm.logic_regions } else
+                if resel_by_region.is_output() { &rm.output_regions } else
                 { panic!("This should not be possible to reach!") }
               }[rm.reverse_dense[region_idx]]
             )
@@ -238,7 +280,11 @@ mod reselboard_tests {
 
       // Account for each region_idx in the dense indices
       for region_iterator in [
-        vec![0], rm.wire_regions, rm.input_regions, rm.logic_regions, rm.output_regions
+        vec![0],
+        rm.wire_regions.clone(),
+        rm.input_regions.clone(),
+        rm.logic_regions.clone(),
+        rm.output_regions.clone()
       ] {
         for region_idx in region_iterator {
           assert!(!accounted_region[region_idx]);
@@ -250,7 +296,16 @@ mod reselboard_tests {
       for region_idx in 0..N_regions {
         assert!(accounted_region[region_idx])
       }
-    }    
+      
+      // Test undirected adjacency
+      for region_idx in 0..N_regions {
+        for rj in rm.get_adjacent_regions(region_idx) {
+          assert!(
+            rm.get_adjacent_regions(rj).contains(&region_idx)
+          );
+        }
+      }
+    }
   }
 
 
@@ -302,6 +357,33 @@ mod reselboard_tests {
     assert_eq!(rm.logic_regions,  vec![]);
     assert_eq!(rm.output_regions, vec![]);
     assert_eq!(rm.reverse_dense,  vec![0,0,1,2,0,1]);
+
+    // test get adjacent regions
+
+    assert_eq!(
+      rm.get_adjacent_regions(0),
+      vec![1,3,4,5]
+    );
+    assert_eq!(
+      rm.get_adjacent_regions(1),
+      vec![0,2,3,4,5]
+    );
+    assert_eq!(
+      rm.get_adjacent_regions(2),
+      vec![1,3,5]
+    );
+    assert_eq!(
+      rm.get_adjacent_regions(3),
+      vec![0,1,2,5]
+    );
+    assert_eq!(
+      rm.get_adjacent_regions(4),
+      vec![0,1]
+    );
+    assert_eq!(
+      rm.get_adjacent_regions(5),
+      vec![0,1,2,3]
+    );
   }
 
   #[test]
@@ -323,7 +405,13 @@ mod reselboard_tests {
 
     assert_eq!(
       rm.xy_to_region,
-      vec![vec![1,0,2], vec![1,3,3], vec![1,4,2], vec![1,2,5], vec![2,2,5]]
+      vec![
+        vec![1,0,2],
+        vec![1,3,3],
+        vec![1,4,2],
+        vec![1,2,5],
+        vec![2,2,5]
+      ]
     );
 
     assert_eq!(
@@ -342,9 +430,11 @@ mod reselboard_tests {
       rm.region_to_resel,
       vec![
         Resel::Empty,
-        Resel::WireLimeOn, Resel::WireOrangeOff,
+        Resel::WireLimeOn,
+        Resel::WireOrangeOff,
         Resel::WireSapphireOn,
-        Resel::Input, Resel::Input
+        Resel::Input,
+        Resel::Input
       ]
     );
 
@@ -354,10 +444,39 @@ mod reselboard_tests {
     assert_eq!(rm.logic_regions,  vec![]);
     assert_eq!(rm.output_regions, vec![]);
     assert_eq!(rm.reverse_dense,  vec![0,0,1,2,0,1]);
+    
+    // test get adjacent regions
+    assert_eq!(
+      rm.get_adjacent_regions(0),
+      vec![1,2,3,]
+    );
+    assert_eq!(
+      rm.get_adjacent_regions(1),
+      vec![0,2,3,4,5,]
+    );
+    assert_eq!(
+      rm.get_adjacent_regions(2),
+      vec![0,1,3,4,5,]
+    );
+    assert_eq!(
+      rm.get_adjacent_regions(3),
+      vec![0,1,2,4,]
+    );
+    assert_eq!(
+      rm.get_adjacent_regions(4),
+      vec![1,2,3,]
+    );
+    assert_eq!(
+      rm.get_adjacent_regions(5),
+      vec![1,2,]
+    );
   }
 
   // todo: We could use more tests for more examples
   // todo: The above tests could be made more robust. They're fragile to differences in ordering
+  // todo: update to test `.get_adjacent_regions`
+
+  // todo: tests for `test_half_adder.png`
 }
 
 // eof

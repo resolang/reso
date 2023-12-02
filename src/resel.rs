@@ -45,45 +45,45 @@ pub const PALETTE_RESEL: [Resel; 11] = [
 ];
 
 pub const PALETTE_U8U8U8: [(u8,u8,u8); 11] = [
-  (128,  64,   0),
-  (255, 128,   0),
-  (  0,  64, 128),
-  (  0, 128, 255),
-  (64,  128,   0),
-  (128, 255,   0),
-  (  0, 128,  64),
-  (  0, 255, 128),
-  ( 64,   0, 128),
-  (128,   0, 255),
-  (0,     0,   0)
+  (128,  64,   0), // WireOrangeOff
+  (255, 128,   0), // WireOrangeOn
+  (  0,  64, 128), // WireSapphireOff
+  (  0, 128, 255), // WireSapphireOn
+  (64,  128,   0), // WireLimeOff
+  (128, 255,   0), // WireLimeOn
+  (  0, 128,  64), // AND
+  (  0, 255, 128), // XOR
+  ( 64,   0, 128), // Input
+  (128,   0, 255), // Output
+  (0,     0,   0), // Empty
 ];
 
 pub const PALETTE_RGBA: [Rgba<u8>; 11] = [
-  Rgba([128,  64,   0, 255]),
-  Rgba([255, 128,   0, 255]),
-  Rgba([  0,  64, 128, 255]),
-  Rgba([  0, 128, 255, 255]),
-  Rgba([64,  128,   0, 255]),
-  Rgba([128, 255,   0, 255]),
-  Rgba([  0, 128,  64, 255]),
-  Rgba([  0, 255, 128, 255]),
-  Rgba([ 64,   0, 128, 255]),
-  Rgba([128,   0, 255, 255]),
-  Rgba([0,     0,   0, 255])
+  Rgba([128,  64,   0, 255]), // WireOrangeOff
+  Rgba([255, 128,   0, 255]), // WireOrangeOn
+  Rgba([  0,  64, 128, 255]), // WireSapphireOff
+  Rgba([  0, 128, 255, 255]), // WireSapphireOn
+  Rgba([64,  128,   0, 255]), // WireLimeOff
+  Rgba([128, 255,   0, 255]), // WireLimeOn
+  Rgba([  0, 128,  64, 255]), // AND
+  Rgba([  0, 255, 128, 255]), // XOR
+  Rgba([ 64,   0, 128, 255]), // Input
+  Rgba([128,   0, 255, 255]), // Output
+  Rgba([0,     0,   0, 255]), // Empty
 ];
 
 pub const PALETTE_STR: [&str; 11] = [
-  "o",
-  "O",
-  "s",
-  "S",
-  "l",
-  "L",
-  "&",
-  "^",
-  "+",
-  "=",
-  " ",
+  "o", // WireOrangeOff
+  "O", // WireOrangeOn
+  "s", // WireSapphireOff
+  "S", // WireSapphireOn
+  "l", // WireLimeOff
+  "L", // WireLimeOn
+  "&", // AND
+  "^", // XOR
+  "+", // Input
+  "=", // Output
+  " ", // Empty
 ];
 
 // Convert (u8,u8,u8), Rgba<u8>, and &str char to Resel

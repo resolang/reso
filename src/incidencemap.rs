@@ -32,7 +32,7 @@ We will get:
 - logic_inc_inputs  = [[0],[0],] // because adj(5,3) and adj(6,3)
 - output_inc_inputs = [[], []]   // because no adj(4,x), no adj(7,x)
 - output_inc_logics = [[0], [1]] // because adj(4,5) and adj(7,6)
-- wire_inc_outputs  = [[], [], [0], [0]] // because adj(8,4) and adj(9,7)
+- wire_inc_outputs  = [[], [], [0], [1]] // because adj(8,4) and adj(9,7)
 
 
 These incidence maps are based on the dense index of each list of regions.
@@ -43,29 +43,11 @@ e.g.                          // region 9 adj region 7
 - output_regions[1]   == 7
 
 TODO: From here!
-  - DUH! Inverse this. **Incidence map**
-    - input_inc_wires
-    - logic_inc_inputs
-    - output_inc_inputs
-    - output_inc_logics
-    - wire_inc_outputs
-    
-    Each loop will look like this:
-
-    temp_input_state = [False for _ in wires]
-    for input_i in input_regions:
-      for wire_i in input_inc_wires[input_i]:
-        temp_input_state[input_i] ||= wire_state[wire_i]
-      
-    // proceed; inp reads from wire(start)
-    // then each logic reads from inputs
-    // then each output reads from inputs, from logics
-    // then each wire(end) reads from output
-
-    Reason: Doing it on one long nested loop (rather than five)
-    means repeating work input -> wire
-      end_wire -> output -> logic -> input -> wire
-                        ----------> input -> wire
+- More tests
+- Review / clean this up
+- Then, CLI in main
+- Then, ARCHITECTURE.md, ALGORITHMS.md, README.md
+- Then, ResoCircuit
 
 */
 
@@ -73,50 +55,49 @@ use crate::resel::{Resel};
 use crate::reselboard::{ReselBoard};
 use crate::regionmap::{RegionMap};
 
-struct IncidenceMap {
-  input_inc_wires:    Vec<Vec<usize>>,
-  logic_inc_inputs:   Vec<Vec<usize>>,
-  output_inc_inputs:  Vec<Vec<usize>>,
-  output_inc_logics:  Vec<Vec<usize>>,
-  wire_inc_outputs:   Vec<Vec<usize>>,
+pub struct IncidenceMap {
+  pub input_inc_wires:    Vec<Vec<usize>>,
+  pub logic_inc_inputs:   Vec<Vec<usize>>,
+  pub output_inc_inputs:  Vec<Vec<usize>>,
+  pub output_inc_logics:  Vec<Vec<usize>>,
+  pub wire_inc_outputs:   Vec<Vec<usize>>,
 }
 
 pub fn incidencemap_from_regionmap(
   rm: &RegionMap
 ) -> IncidenceMap {
-  /*
-  pub struct RegionMap {
-    xy_to_region:     Vec<Vec<usize>>,
-    region_to_xys:    Vec<Vec<(usize, usize)>>,
-    region_to_resel:  Vec<Resel>,
-    wire_regions:     Vec<usize>,
-    input_regions:    Vec<usize>,
-    logic_regions:    Vec<usize>,
-    output_regions:   Vec<usize>,
-    reverse_dense:    Vec<usize>
-  }
-  */
-
   // todo redundant: There's a lot of repeating here
   // Surely there is some way to repeat less 
-  let input_inc_wires:    Vec<Vec<usize>> = vec![vec![]];
-  let logic_inc_inputs:   Vec<Vec<usize>> = vec![vec![]];
-  let output_inc_inputs:  Vec<Vec<usize>> = vec![vec![]];
-  let output_inc_logics:  Vec<Vec<usize>> = vec![vec![]];
-  let wire_inc_outputs:   Vec<Vec<usize>> = vec![vec![]];
+  let mut input_inc_wires:    Vec<Vec<usize>> = vec![];
+  let mut logic_inc_inputs:   Vec<Vec<usize>> = vec![];
+  let mut output_inc_inputs:  Vec<Vec<usize>> = vec![];
+  let mut output_inc_logics:  Vec<Vec<usize>> = vec![];
+  let mut wire_inc_outputs:   Vec<Vec<usize>> = vec![];
 
   
+  // Can't iterate over closures unless you "Box" them
+  // I do not understand this and I don't like it
+  // Look how ugly this is
   for (X_inc_Y, X_regions, Y_condition) in [
-    (input_inc_wires,   rm.input_regions,   |y: Resel| y.is_wire()),
-    (logic_inc_inputs,  rm.logic_regions,   |y: Resel| y.is_input()),
-    (output_inc_inputs, rm.output_regions,  |y: Resel| y.is_input()),
-    (output_inc_logics, rm.output_regions,  |y: Resel| y.is_logic()),
-    (wire_inc_outputs,  rm.wire_regions,    |y: Resel| y.is_output()),
+    (&mut input_inc_wires,   &rm.input_regions, //|y| y.is_wire()),
+      Box::new(|y: Resel| y.is_wire()) as Box<dyn Fn(Resel) -> bool>),
+    (&mut logic_inc_inputs,  &rm.logic_regions, //|y| y.is_input()),
+      Box::new(|y: Resel| y.is_input()) as Box<dyn Fn(Resel) -> bool>),
+    (&mut output_inc_inputs, &rm.output_regions,//|y| y.is_input()),
+      Box::new(|y: Resel| y.is_input()) as Box<dyn Fn(Resel) -> bool>),
+    (&mut output_inc_logics, &rm.output_regions,//|y| y.is_logic()),
+      Box::new(|y: Resel| y.is_logic()) as Box<dyn Fn(Resel) -> bool>),
+    (&mut wire_inc_outputs,  &rm.wire_regions,  //|y| y.is_output()),
+      Box::new(|y: Resel| y.is_output()) as Box<dyn Fn(Resel) -> bool>),
   ] {
     for (X_i, ri) in X_regions.iter().enumerate() {
-      for adj_ri in rm.get_adjacent_regions(ri) {
+      assert_eq!(X_i, X_inc_Y.len());
+      X_inc_Y.push(vec![]);
+
+      for adj_ri in rm.get_adjacent_regions(*ri) {
+
         if Y_condition(rm.region_to_resel[adj_ri]) {
-          X_inc_Y.push(X_i)
+          X_inc_Y[X_i].push(rm.reverse_dense[adj_ri])
         }
       }
     }
@@ -147,17 +128,41 @@ mod reselboard_tests {
     vecvecresel_to_reselboard,
     ReselBoard
   };
+  use crate::regionmap::{
+    RegionMap,
+    region_map_from_reselboard
+  };
 
   #[test]
   fn test_incident_map_on_half_adder() {
     let rb = image_to_reselboard(
       load_image_from_filename(
-        "./src/testing/test_01_new-palette.png"
+        "./src/testing/test_half_adder.png"
       ).unwrap()
     );
 
     let rm = region_map_from_reselboard(&rb);
-
     let im = incidencemap_from_regionmap(&rm);
+
+    assert_eq!(
+      im.input_inc_wires,
+      vec![vec![0,1]]
+    );
+    assert_eq!(
+      im.logic_inc_inputs,
+      vec![vec![0], vec![0]]
+    );
+    assert_eq!(
+      im.output_inc_inputs,
+      vec![vec![], vec![]]
+    );
+    assert_eq!(
+      im.output_inc_logics,
+      vec![vec![0], vec![1],]
+    );
+    assert_eq!(
+      im.wire_inc_outputs,
+      vec![vec![],vec![],vec![0],vec![1],]
+    );
   }
 }

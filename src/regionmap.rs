@@ -44,19 +44,20 @@ use crate::reselboard::{
 };
 
 pub struct RegionMap {
-  xy_to_region: Vec<Vec<usize>>,            // [x][y] -> i
-  width: usize,
-  height: usize,
+  pub xy_to_region: Vec<Vec<usize>>,            // [x][y] -> i
+  pub width: usize,
+  pub height: usize,
 
-  region_to_xys: Vec<Vec<(usize, usize)>>,  // [i] -> [(x,y),...]
-  region_to_resel:  Vec<Resel>,             // [Resel::Empty, Resel::And, ...]
+  pub region_to_xys: Vec<Vec<(usize, usize)>>,  // [i] -> [(x,y),...]
+  pub region_to_resel:  Vec<Resel>,             // [Resel::Empty, Resel::And, ...]
 
   // dense class indices, for iterating over wires/inputs/logics/outputs
   // list of region indices; position in list is an inherent "dense index"
-  wire_regions:     Vec<usize>,
-  input_regions:    Vec<usize>,
-  logic_regions:    Vec<usize>,
-  output_regions:   Vec<usize>,
+  // todo redundant: Can these four items be made as one structure?
+  pub wire_regions:     Vec<usize>,
+  pub input_regions:    Vec<usize>,
+  pub logic_regions:    Vec<usize>,
+  pub output_regions:   Vec<usize>,
 
   /* reverse dense index
   e.g. given region_index ri, what is the dense index?
@@ -65,7 +66,7 @@ pub struct RegionMap {
   O(logn): wire_regions.iter().position(|&wire_ri| wire_ri == ri)
   O(1):    reverse_dense[ri]
   */
-  reverse_dense: Vec<usize>
+  pub reverse_dense: Vec<usize>
 }
 
 impl RegionMap {

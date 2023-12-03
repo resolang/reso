@@ -5,19 +5,22 @@ use image::{
 };
 
 mod resel;
+mod reselboard;
+mod regionmap;
+mod incidencemap;
+
 use resel::{Resel
 };
 
-mod reselboard;
 use reselboard::{
   image_to_vecvecresel,
   load_image_from_filename,
 };
-mod regionmap;
 use regionmap::{
   region_map_from_reselboard,
   RegionMap
 };
+
 
 
 /*
@@ -31,6 +34,9 @@ todo:
   - main CLI
   - Draw an example image with associated ReselBoard, RegionMap values
 - Far later:
+  - See `todo redundant` when I'm better at Rust.
+    - How to restructure?
+    - e.g. instead of `wire_regions[wi]` maybe `dense[Class::Wire][wi]`?
   - resolang.dev site
   - IDE
   - Debugger which shows ReselBoard, RegionMap, AdjacencyMap, ResoCircuit state

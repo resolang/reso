@@ -71,7 +71,7 @@ TODO: From here!
 
 use crate::resel::{Resel};
 use crate::reselboard::{ReselBoard};
-use crate::RegionMap::{RegionMap};
+use crate::regionmap::{RegionMap};
 
 struct IncidenceMap {
   input_inc_wires:    Vec<Vec<usize>>,
@@ -81,9 +81,9 @@ struct IncidenceMap {
   wire_inc_outputs:   Vec<Vec<usize>>,
 }
 
-pub fn adjacencymap_from_regionmap(
+pub fn incidencemap_from_regionmap(
   rm: &RegionMap
-) {
+) -> IncidenceMap {
   /*
   pub struct RegionMap {
     xy_to_region:     Vec<Vec<usize>>,
@@ -97,20 +97,67 @@ pub fn adjacencymap_from_regionmap(
   }
   */
 
+  // todo redundant: There's a lot of repeating here
+  // Surely there is some way to repeat less 
+  let input_inc_wires:    Vec<Vec<usize>> = vec![vec![]];
+  let logic_inc_inputs:   Vec<Vec<usize>> = vec![vec![]];
+  let output_inc_inputs:  Vec<Vec<usize>> = vec![vec![]];
+  let output_inc_logics:  Vec<Vec<usize>> = vec![vec![]];
+  let wire_inc_outputs:   Vec<Vec<usize>> = vec![vec![]];
 
-  /*
-  for each ri in rm.wire_regions,
-    for each (x,y) in rm.region_to_xys:
-      // iterate over neighbors
-      for each nx, ny,
-        n_ri = xy_to_region[x][y]
+  
+  for (X_inc_Y, X_regions, Y_condition) in [
+    (input_inc_wires,   rm.input_regions,   |y: Resel| y.is_wire()),
+    (logic_inc_inputs,  rm.logic_regions,   |y: Resel| y.is_input()),
+    (output_inc_inputs, rm.output_regions,  |y: Resel| y.is_input()),
+    (output_inc_logics, rm.output_regions,  |y: Resel| y.is_logic()),
+    (wire_inc_outputs,  rm.wire_regions,    |y: Resel| y.is_output()),
+  ] {
+    for (X_i, ri) in X_regions.iter().enumerate() {
+      for adj_ri in rm.get_adjacent_regions(ri) {
+        if Y_condition(rm.region_to_resel[adj_ri]) {
+          X_inc_Y.push(X_i)
+        }
+      }
+    }
+  }
+  
 
-        if n_ri is input, 
-          input_to_wires.push(
-            reverse_index[n_ri]
-          )
-  */
+  IncidenceMap{
+    input_inc_wires,
+    logic_inc_inputs,
+    output_inc_inputs,
+    output_inc_logics,
+    wire_inc_outputs,
+  }
 }
 
 // eof
 // todo: tests
+
+
+#[cfg(test)]
+mod reselboard_tests {
+  use super::*;
+  use std::collections::HashSet;
+  use crate::reselboard::{
+    load_image_from_filename,
+    image_to_vecvecresel,
+    image_to_reselboard,
+    vecvecresel_to_reselboard,
+    ReselBoard
+  };
+
+  #[test]
+  fn test_incident_map_on_half_adder() {
+    let rb = image_to_reselboard(
+      load_image_from_filename(
+        "./src/testing/test_01_new-palette.png"
+      ).unwrap()
+    );
+
+    let rm = region_map_from_reselboard(&rb);
+
+    let im = incidencemap_from_regionmap(&rm);
+  }
+}

@@ -1,16 +1,53 @@
-/*
-resel.rs
+//! resel.rs: Conversions between Resels, Rgba pixels, and chars.
+//! 
+//! A "resel" is a "reso pixel".
+//! 
+//! An image or text file is converted to a Vec<Vec<Resel>> as the first step
+//! of preprocessing. Regions of resels in the Vec<Vec<Resel>> form the
+//! logical nodes which form Reso circuits.
+//! 
+//! A Resel can be converted to/from:
+//! - A pixel defined as image::Rgba
+//! - An RGB pixel defined as (u8,u8,u8)
+//! - A character
+//! 
+//! The palette is defined as follows:
+//!
+//! | Color          | Meaning               | Hex code       | RGB               | ASCII |
+//! | -------------- | --------------------- | ---            | ----------------- | ----- |
+//! | Dark  orange   | Orange wire (off)     | ```#804000```  | `(128,  64,   0)` | `o`   |
+//! | Bright orange  | Orange wire (on)      | ```#ff8000```  | `(255, 128,   0)` | `O`   |
+//! | Dark sapphire  | Sapphire wire (off)   | ```#004080```  | `(  0,  64, 128)` | `s`   |
+//! | Bright sapphire| Sapphire wire (on)    | ```#0080ff```  | `(  0, 128, 255)` | `S`   |
+//! | Dark lime      | Lime wire (off)       | ```#408000```  | `(64,  128,   0)` | `l`   |
+//! | Bright lime    | Lime wire (on)        | ```#80ff00```  | `(128, 255,   0)` | `L`   |
+//! | Dark teal      | AND logic node        | ```#008040```  | `(  0, 128,  64)` | `&`   |
+//! | Bright teal    | XOR logic node        | ```#00ff80```  | `(  0, 255, 128)` | `^`   |
+//! | Dark purple    | Input (wire to node)  | ```#400080```  | `( 64,   0, 128)` | `+`   |
+//! | Bright purple  | Output (node to wire) | ```#8000ff```  | `(128,   0, 255)` | `=`   |
+//! 
+//! Example:
+//! 
+//! ```rust
+//! // Convert to a Resel
+//! let (r, g, b) = (  0, 255, 128);
+//! let rgba = Rgba([r, g, b, 255]);
+//! let resel_from_rgb_tuple = Resel::from((r,g,b));
+//! let resel_from_rgba      = Resel::from(rgba);
+//! let resel_from_char      = Resel::from("^");
+//! let resel                = Resel::XOR;
+//! 
+//! assert_eq!(resel, resel_from_rgb_tuple);
+//! assert_eq!(resel, resel_from_rgba);
+//! assert_eq!(resel, resel_from_char);
+//! 
+//! // Convert from a Resel
+//! assert_eq!((r,g,b), <(u8,u8,u8)>::from(resel));
+//! assert_eq!(rgba,    <Rgba<u8>>::from(resel));
+//! assert_eq!("^",     <&str>::from(resel));
+//! 
+//! ```
 
-A "resel" is a "reso pixel". This is essentially a mapping of pixels/chars to Resel enum.
-E.g. Resel::WireOrangeOn can be represented by a (#FF8000) pixel or an "O" ASCII.
-
-A ReselBoard is just a Vec<Vec<Resel>>, compiles a Reso Circuit.
-A Reso Circuit is the executable part of Reso, and is built from Reso nodes.
-A ResoCircuit (optionally, recommended) keeps a ResoBoard around, such as for rendering.
-
-
-A resel can be converted to/from an (R,G,B) or a character
-*/
 use image::{Rgba};
 
 /// Enum of all the classes a resel can have
@@ -196,7 +233,7 @@ impl From<Resel> for &str {
   }
 }
 
-// Resel methods: resel.same(other)
+// Resel methods
 impl Resel {
   // Unlike eq, ignore wire state. e.g. WireOrangeOn == WireOrangeOff
   pub fn same(self, other: Resel) -> bool {
@@ -219,7 +256,7 @@ impl Resel {
     }
   }
 
-  // These have no tests
+  // These have no tests, but they're soooo simple
   pub fn is_wire(&self) -> bool {
     match self {
       Resel::WireOrangeOff   | Resel::WireOrangeOn   |
@@ -237,10 +274,10 @@ impl Resel {
     }
   }
 
-  pub fn is_empty(&self) -> bool { *self == Resel::Empty }
-  pub fn is_input(&self) -> bool { *self == Resel::Input }
+  pub fn is_empty(&self)  -> bool { *self == Resel::Empty }
+  pub fn is_input(&self)  -> bool { *self == Resel::Input }
   pub fn is_output(&self) -> bool { *self == Resel::Output }
-  pub fn is_io(&self) -> bool { self.is_input() || self.is_output() }
+  pub fn is_io(&self)     -> bool { self.is_input() || self.is_output() }
 
   pub fn delta_neighbors(&self) -> Vec<(isize, isize)> {
     match self {

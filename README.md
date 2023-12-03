@@ -28,18 +28,18 @@ TODO: Cargo, CLI instructions
 There are ten syntactically-relevant colors which get compiled, the other 16777206 colors are ignored.  The palette is an important part of Reso! A region is defined by the colors it is made out of.
 
 
-| Color          | Meaning               | Hex code       | ASCII |
-| ---            | ---                   | ---            | --- |
-| Bright orange  | Orange wire (on)      | ```#ff8000```  | `O` |
-| Dark  orange   | Orange wire (off)     | ```#804000```  | `o` |
-| Bright sapphire| Sapphire wire (on)    | ```#0080ff```  | `S` |
-| Dark sapphire  | Sapphire wire (off)   | ```#004080```  | `s` |
-| Bright lime    | Lime wire (on)        | ```#80ff00```  | `L` |
-| Dark lime      | Lime wire (off)       | ```#408000```  | `l` |
-| Bright purple  | Output (node to wire) | ```#8000ff```  | `=` |
-| Dark purple    | Input (wire to node)  | ```#400080```  | `+` |
-| Bright teal    | XOR logic node        | ```#00ff80```  | `^` |
-| Dark teal      | AND logic node        | ```#008040```  | `&` |
+| Color          | Meaning               | Hex code       | RGB               | ASCII |
+| -------------- | --------------------- | ---            | ----------------- | ----- |
+| Dark  orange   | Orange wire (off)     | ```#804000```  | `(128,  64,   0)` | `o`   |
+| Bright orange  | Orange wire (on)      | ```#ff8000```  | `(255, 128,   0)` | `O`   |
+| Dark sapphire  | Sapphire wire (off)   | ```#004080```  | `(  0,  64, 128)` | `s`   |
+| Bright sapphire| Sapphire wire (on)    | ```#0080ff```  | `(  0, 128, 255)` | `S`   |
+| Dark lime      | Lime wire (off)       | ```#408000```  | `(64,  128,   0)` | `l`   |
+| Bright lime    | Lime wire (on)        | ```#80ff00```  | `(128, 255,   0)` | `L`   |
+| Dark teal      | AND logic node        | ```#008040```  | `(  0, 128,  64)` | `&`   |
+| Bright teal    | XOR logic node        | ```#00ff80```  | `(  0, 255, 128)` | `^`   |
+| Dark purple    | Input (wire to node)  | ```#400080```  | `( 64,   0, 128)` | `+`   |
+| Bright purple  | Output (node to wire) | ```#8000ff```  | `(128,   0, 255)` | `=`   |
 
 For backwards compatibility with new functionality, we reserve a total of 48 colors. (This is by convention and is not enforced by the Reso simulator.)
 

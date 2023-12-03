@@ -29,6 +29,7 @@ impl RegionMap {
 }
 
 TODO:
+  - Region with mixed on/off wires should be classed as "on".
   - add `width`, `height` to `RegionMap`? Or even a whole `ReselBoard`?
   - `impl get_adjacent_regions(ri: usize) -> regions: Vec<usize>`
   - Ensure sorted ordering on all outputs?

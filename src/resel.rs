@@ -50,6 +50,7 @@
 
 use image::{Rgba};
 
+
 /// Enum of all the classes a resel can have
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Resel {
@@ -66,7 +67,9 @@ pub enum Resel {
   Empty
 }
 
-// Palette constants-- must be kept in same order as one another
+// Palettes must be kept in the same order as one another
+
+/// Palette of Resels for easy iteration
 pub const PALETTE_RESEL: [Resel; 11] = [
   Resel::WireOrangeOff,
   Resel::WireOrangeOn,
@@ -81,6 +84,7 @@ pub const PALETTE_RESEL: [Resel; 11] = [
   Resel::Empty
 ];
 
+/// Palette of rgb u8u8u8 Resel values for easy iteration
 pub const PALETTE_U8U8U8: [(u8,u8,u8); 11] = [
   (128,  64,   0), // WireOrangeOff
   (255, 128,   0), // WireOrangeOn
@@ -95,6 +99,7 @@ pub const PALETTE_U8U8U8: [(u8,u8,u8); 11] = [
   (0,     0,   0), // Empty
 ];
 
+/// Palette of image::Rgba Resel values for easy iteration
 pub const PALETTE_RGBA: [Rgba<u8>; 11] = [
   Rgba([128,  64,   0, 255]), // WireOrangeOff
   Rgba([255, 128,   0, 255]), // WireOrangeOn
@@ -109,6 +114,7 @@ pub const PALETTE_RGBA: [Rgba<u8>; 11] = [
   Rgba([0,     0,   0, 255]), // Empty
 ];
 
+/// Palette of str Resel values for easy iteration
 pub const PALETTE_STR: [&str; 11] = [
   "o", // WireOrangeOff
   "O", // WireOrangeOn
@@ -123,7 +129,7 @@ pub const PALETTE_STR: [&str; 11] = [
   " ", // Empty
 ];
 
-// Convert (u8,u8,u8), Rgba<u8>, and &str char to Resel
+/// Converts rgb <(u8,, u8, u8)> pixel to Resel
 impl From<(u8, u8, u8)> for Resel {
   fn from(rgb: (u8, u8, u8)) -> Self {
     match rgb {
@@ -142,6 +148,7 @@ impl From<(u8, u8, u8)> for Resel {
   }
 }
 
+/// Converts image::Rgba to Resel
 impl From<Rgba<u8>> for Resel {
   fn from(rgba: Rgba<u8>) -> Self {
     match rgba {
@@ -160,6 +167,7 @@ impl From<Rgba<u8>> for Resel {
   }
 }
 
+/// Converts &str to Resel
 impl From<&str> for Resel {
   fn from(c: &str) -> Self {
     match c {
@@ -178,7 +186,7 @@ impl From<&str> for Resel {
   }
 }
 
-// Convert Resel to (u8,u8,u8), Rgba<u8>, and &str char
+/// Converts Resel to rgb <(u8, u8, u8)>
 impl From<Resel> for (u8, u8, u8) {
   fn from(resel: Resel) -> Self {
     match resel {
@@ -196,7 +204,7 @@ impl From<Resel> for (u8, u8, u8) {
     }
   }
 }
-
+/// Converts Resel to image::Rgba
 impl From<Resel> for Rgba<u8> {
   fn from(resel: Resel) -> Self {
     match resel {
@@ -214,7 +222,7 @@ impl From<Resel> for Rgba<u8> {
     }
   }
 }
-
+/// Converts Resel to str
 impl From<Resel> for &str {
   fn from(resel: Resel) -> Self {
     match resel {
@@ -233,12 +241,12 @@ impl From<Resel> for &str {
   }
 }
 
-// Resel methods
+
 impl Resel {
-  // Unlike eq, ignore wire state. e.g. WireOrangeOn == WireOrangeOff
+
+  /// Check if one Resel is the same as the other.
+  /// Useful because WireOrangeOn is the "same" as WireOrangeOff
   pub fn same(self, other: Resel) -> bool {
-    // Used when checking adjacent regions.
-    // (Adjacent wires, e.g. OOOooo, compile to the same wire OOOOOO)
     match (self, other) {
       ( Resel::WireOrangeOff | Resel::WireOrangeOn,
         Resel::WireOrangeOn  | Resel::WireOrangeOff
@@ -256,7 +264,7 @@ impl Resel {
     }
   }
 
-  // These have no tests, but they're soooo simple
+
   pub fn is_wire(&self) -> bool {
     match self {
       Resel::WireOrangeOff   | Resel::WireOrangeOn   |

@@ -472,11 +472,123 @@ mod reselboard_tests {
     );
   }
 
-  // todo: We could use more tests for more examples
-  // todo: The above tests could be made more robust. They're fragile to differences in ordering
-  // todo: update to test `.get_adjacent_regions`
+  #[test]
+  fn test_region_map_half_adder() {
+    /*
+    This is a fragile test.
+    It assumes an order to the elements returned, despite 
+    region_map_from_reselboard not guaranteeing such an order.
 
-  // todo: tests for `test_half_adder.png`
+    Someone better at Rust should rework this.
+    */
+    let rb = image_to_reselboard(
+      load_image_from_filename(
+        "./src/testing/test_half_adder.png"
+      ).unwrap()
+    );
+
+    let rm = region_map_from_reselboard(&rb);
+
+    assert_eq!(
+      rm.xy_to_region,
+      vec![
+        vec![0,0,1,2,0,0],
+        vec![0,0,1,2,0,0],
+        vec![0,0,1,2,0,0],
+        vec![0,0,3,3,0,0],
+        vec![0,4,5,6,7,0],
+        vec![0,8,0,0,9,0],
+        vec![0,8,0,0,9,0],
+        vec![0,8,0,0,9,0],
+      ]
+    );
+
+    // skip region 0 because there are so many
+    for (region_idx, expected) in [
+      (1, vec![(0,2),(1,2),(2,2)]),
+      (2, vec![(0,3),(1,3),(2,3)]),
+      (3, vec![(3,2),(3,3)]),
+      (4, vec![(4,1)]),
+      (5, vec![(4,2)]),
+      (6, vec![(4,3)]),
+      (7, vec![(4,4)]),
+      (8, vec![(5,1),(6,1),(7,1)]),
+      (9, vec![(5,4),(6,4),(7,4)]),
+    ] {
+      assert_eq!(
+        rm.region_to_xys[region_idx],
+        expected
+      )
+    }
+
+    assert_eq!(
+      rm.region_to_resel,
+      vec![
+        Resel::Empty,
+        Resel::WireOrangeOff,
+        Resel::WireSapphireOff,
+        Resel::Input,
+        Resel::Output,
+        Resel::XOR,
+        Resel::AND,
+        Resel::Output,
+        Resel::WireLimeOff,
+        Resel::WireLimeOff
+      ]
+    );
+
+    assert_eq!(rm.wire_regions,   vec![1,2,8,9]);
+    assert_eq!(rm.input_regions,  vec![3,]);
+    assert_eq!(rm.logic_regions,  vec![5,6]);
+    assert_eq!(rm.output_regions, vec![4,7]);
+    assert_eq!(rm.reverse_dense,  vec![0,0,1,0,0,0,1,1,2,3]);
+    
+    // test get adjacent regions
+    assert_eq!(
+      rm.get_adjacent_regions(0),
+      vec![1,2,3,4,5,6,7,8,9]
+    );
+    assert_eq!(
+      rm.get_adjacent_regions(1),
+      vec![0,2,3,]
+    );
+    assert_eq!(
+      rm.get_adjacent_regions(2),
+      vec![0,1,3,]
+    );
+    assert_eq!(
+      rm.get_adjacent_regions(3),
+      vec![0,1,2,5,6]
+    );
+    assert_eq!(
+      rm.get_adjacent_regions(4),
+      vec![0,5,8]
+    );
+    assert_eq!(
+      rm.get_adjacent_regions(5),
+      vec![0,3,4,6],
+    );
+    assert_eq!(
+      rm.get_adjacent_regions(6),
+      vec![0,3,5,7],
+    );
+    assert_eq!(
+      rm.get_adjacent_regions(7),
+      vec![0,6,9],
+    );
+    assert_eq!(
+      rm.get_adjacent_regions(8),
+      vec![0,4,],
+    );
+    assert_eq!(
+      rm.get_adjacent_regions(9),
+      vec![0,7,],
+    );
+  }
+
+  // todo: We could use more tests for more examples
+  // todo: The above tests could be made more robust.
+  // They're fragile to differences in ordering
 }
 
 // eof

@@ -24,7 +24,8 @@
 
 use crate::resel::{Resel};
 use crate::reselboard::{
-  ReselBoard, get_neighbors
+  ReselBoard,
+  get_neighbors
 };
 
 /// RegionMap -- Mapping between contiguous regions and their coordinates.
@@ -199,20 +200,14 @@ pub fn region_map_from_reselboard(
 }
 
 
-
-
 #[cfg(test)]
 mod reselboard_tests {
   use super::*;
-  use std::collections::HashSet;
   use crate::reselboard::{
     load_image_from_filename,
-    image_to_vecvecresel,
     image_to_reselboard,
     vecvecresel_to_reselboard,
-    ReselBoard
   };
-
 
   #[test]
   fn test_regon_map_basic() {
@@ -239,13 +234,13 @@ mod reselboard_tests {
       let rm = region_map_from_reselboard(&rb);
 
       let (width, height) = (rb.board.len(), rb.board[0].len());
-      let N_regions = rm.region_to_xys.len();
+      let n_regions = rm.region_to_xys.len();
       let mut accounted_xy:       Vec<Vec<bool>>  = vec![vec![false; height as usize]; width as usize];
-      let mut accounted_region: Vec<bool> = vec![false; N_regions];
+      let mut accounted_region: Vec<bool> = vec![false; n_regions];
 
-      assert!(N_regions >= 1);
+      assert!(n_regions >= 1);
 
-      for region_idx in 0..N_regions {
+      for region_idx in 0..n_regions {
         let resel_by_region = rm.region_to_resel[region_idx];
 
         for (x,y) in &rm.region_to_xys[region_idx] {
@@ -297,12 +292,12 @@ mod reselboard_tests {
         }
       
       // Now, each region_idx should be accounted for
-      for region_idx in 0..N_regions {
+      for region_idx in 0..n_regions {
         assert!(accounted_region[region_idx])
       }
       
       // Test undirected adjacency
-      for region_idx in 0..N_regions {
+      for region_idx in 0..n_regions {
         for rj in rm.get_adjacent_regions(region_idx) {
           assert!(
             rm.get_adjacent_regions(rj).contains(&region_idx)

@@ -51,7 +51,6 @@
 
 
 use crate::resel::{Resel};
-use crate::reselboard::{ReselBoard};
 use crate::regionmap::{RegionMap};
 
 
@@ -87,7 +86,7 @@ pub fn incidencemap_from_regionmap(
   // Can't iterate over closures unless you "Box" them
   // I do not understand this and I don't like it
   // Look how ugly this is
-  for (X_inc_Y, X_regions, Y_condition) in [
+  for (x_inc_y, x_regions, y_condition) in [
     (&mut input_inc_wires,   &rm.input_regions, //|y| y.is_wire()),
       Box::new(|y: Resel| y.is_wire()) as Box<dyn Fn(Resel) -> bool>),
     (&mut logic_inc_inputs,  &rm.logic_regions, //|y| y.is_input()),
@@ -99,14 +98,14 @@ pub fn incidencemap_from_regionmap(
     (&mut wire_inc_outputs,  &rm.wire_regions,  //|y| y.is_output()),
       Box::new(|y: Resel| y.is_output()) as Box<dyn Fn(Resel) -> bool>),
   ] {
-    for (X_i, ri) in X_regions.iter().enumerate() {
-      assert_eq!(X_i, X_inc_Y.len());
-      X_inc_Y.push(vec![]);
+    for (x_i, ri) in x_regions.iter().enumerate() {
+      assert_eq!(x_i, x_inc_y.len());
+      x_inc_y.push(vec![]);
 
       for adj_ri in rm.get_adjacent_regions(*ri) {
 
-        if Y_condition(rm.region_to_resel[adj_ri]) {
-          X_inc_Y[X_i].push(rm.reverse_dense[adj_ri])
+        if y_condition(rm.region_to_resel[adj_ri]) {
+          x_inc_y[x_i].push(rm.reverse_dense[adj_ri])
         }
       }
     }
@@ -129,16 +128,11 @@ pub fn incidencemap_from_regionmap(
 #[cfg(test)]
 mod reselboard_tests {
   use super::*;
-  use std::collections::HashSet;
   use crate::reselboard::{
     load_image_from_filename,
-    image_to_vecvecresel,
     image_to_reselboard,
-    vecvecresel_to_reselboard,
-    ReselBoard
   };
   use crate::regionmap::{
-    RegionMap,
     region_map_from_reselboard
   };
 

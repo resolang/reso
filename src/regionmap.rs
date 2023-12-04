@@ -1,49 +1,50 @@
-/*
-regionmap.rs
 
-Identify the regions in a Reselboard Vec<Vec<Resel>>.
+//! regionmap.rs -- Identify the contiguous regions in a ReselBoard Vec<Vec<Resel>.
+//! 
+//! Exactly what it says on the tin, with two complications:
+//! 1. Resels have 4-neighborhood connectivity, except wires, which have 8.
+//! 2. On and off wires of the same color (e.g. orange) are the same.
+//! 
+//! Key to a RegionMap are region indices. Region 0 corresponds to any 'empty'
+//! Resel. All others start counting from 1.
+//! 
+//! For performance, we also maintain implicit list of "dense" class indices
+//! for input resels, output resels, wire resels, and logic resels.
+//! 
+//! TODO:
+//! - Example code in docs
+//! - Region with mixed on/off wires should be classed as "on".
+//! - add `width`, `height` to `RegionMap`? Or even a whole `ReselBoard`?
+//! - `impl get_adjacent_regions(ri: usize) -> regions: Vec<usize>`
+//! - Ensure sorted ordering on all outputs?
+//! 
+//! - region mapper should probably return something like Result<Option<T>, E>
+//! - Find some way to make generic and publish the CCL algorithm
+//! - Make some of these `impls`?
 
-pub fn region_map_from_reselboard(board: &Vec<Vec<Resel>>) -> RegionMap
-
-pub struct RegionMap {
-  xy_to_region: Vec<Vec<usize>>,            // [x][y] -> i
-  width: usize,
-  height: usize,
-  region_to_xys: Vec<Vec<(usize, usize)>>,  // [i] -> [(x,y),...]
-  region_to_resel:  Vec<Resel>,             // [Resel::Empty, Resel::And, ...]
-  
-  // dense class indices, for iterating over wires/inputs/logics/outputs
-  wire_regions:     Vec<usize>,
-  input_regions:    Vec<usize>,
-  logic_regions:    Vec<usize>,
-  output_regions:   Vec<usize>,
-
-  // reverse dense index, region_index to index of relevant dense index
-  reverse_dense: Vec<usize>
-  // e.g. ri == wire_regions[reverse_dense[ri]], if ri corresponds to a wire
-}
-
-impl RegionMap {
-  pub fn get_adjacent_regions(region: usize) -> Vec<usize> // list of regions
-
-}
-
-TODO:
-  - Region with mixed on/off wires should be classed as "on".
-  - add `width`, `height` to `RegionMap`? Or even a whole `ReselBoard`?
-  - `impl get_adjacent_regions(ri: usize) -> regions: Vec<usize>`
-  - Ensure sorted ordering on all outputs?
-
-  - region mapper should probably return something like Result<Option<T>, E>
-  - Find some way to make generic and publish the CCL algorithm
-  - Make some of these `impls`?
-
-*/
 use crate::resel::{Resel};
 use crate::reselboard::{
   ReselBoard, get_neighbors
 };
 
+/// RegionMap -- Mapping between contiguous regions and their coordinates.
+/// 
+/// A region is just a contiguous blob of resels. Regions can be one resel
+/// large (and should be for most non-wire resels.)
+/// 
+/// Region index starts at 1 (with '0' reserved for the empty region).
+/// 
+/// - `xy_to_region[x][y]` = the region index at a given coordinate
+/// - `region_to_xys[i]`   = the coordinate of a region index
+/// - `region_to_resel[i]` = the Resel of a given region
+/// - The "dense indices" maintain a list of region indices
+///   four different types of resel.
+///   - `wire_regions` for wires (Orange, Sapphire, Lime, on or off)
+///   - `input_regions` for any input region
+///   - `output_regions` for any output region
+///   - `logic_regions` for And and Xor regions
+/// - The `reverse_dense` index gives you the dense index value for any `region_index`.
+///   - This is hard to wrap your mind around; look at the tests for examples.
 pub struct RegionMap {
   pub xy_to_region: Vec<Vec<usize>>,            // [x][y] -> i
   pub width: usize,
@@ -71,6 +72,7 @@ pub struct RegionMap {
 }
 
 impl RegionMap {
+  /// For any region index, get the list of region indices of adjacent regions
   pub fn get_adjacent_regions(&self, region: usize) -> Vec<usize> {
     let mut adjacent_regions = vec![];
 
@@ -100,9 +102,9 @@ let (
   wire_regions, input_regions, logic_regions, output_regions
 ) = region_map_from_reselboard(board)
 */
+
 /// Given a reselboard, find and index regions of adjacent elements.
-/// Return as instance of RegionMap, which just holds all the useful data
-/// 
+/// Return as instance of RegionMap, which holds all the useful data.
 pub fn region_map_from_reselboard(
   rb: &ReselBoard,
 ) -> RegionMap {

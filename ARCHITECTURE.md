@@ -3,9 +3,52 @@ ARCHITECTURE and RESO CONCEPTS
 
 You don't need to know any of this unless you are working on the code! If you are, you might benefit from the below.
 
+Here is a graph of dependencies:
+
+```mermaid
+graph TD;
+  resel.rs-->reselboard.rs
+  
+  resel.rs-->regionmap.rs
+  
+  resel.rs-->incidencemap.rs
+  
+  reselboard.rs-->regionmap.rs
+  
+  regionmap.rs-->incidencemap.rs
+
+
+  resel.rs-->resocircuit.rs
+  reselboard.rs-->resocircuit.rs
+  regionmap.rs-->resocircuit.rs
+  incidencemap.rs-->resocircuit.rs
+  resocircuit.rs-->main.rs
 ```
-TODO: Mermaid graph of dependencies.
+
+But everything depends on `resel.rs`, so let's break this into two graphs to make it look better:
+
+```mermaid
+graph LR;
+  resel.rs-->reselboard.rs
+  resel.rs-->regionmap.rs  
+  resel.rs-->incidencemap.rs
+  resel.rs-->resocircuit.rs
 ```
+
+
+```mermaid
+graph LR;
+  reselboard.rs-->regionmap.rs
+  
+  regionmap.rs-->incidencemap.rs
+
+  reselboard.rs-->resocircuit.rs
+  regionmap.rs-->resocircuit.rs
+  incidencemap.rs-->resocircuit.rs
+  resocircuit.rs-->main.rs
+```
+
+(todo: check this is true after i implement `resocircuit.rs`, `main.rs`)
 
 
 # Core ideas

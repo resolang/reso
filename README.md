@@ -11,10 +11,18 @@ Reso is a visual circuit design language, meant to let anybody who can draw pixe
 # TODOs:
 
 - New logo
+- Custom palettes defined by a PNG
+- Docs
 - README.md
 - ARCHITECTURE.md
 - ALGORITHMS.md
 - Oh, the code is not finished either.
+
+- Trailer
+  - Draw wires
+  - Custom palettes! Do a Warhol kind of thing
+  - Cool circuits!
+  - Animated logo
 
 
 # Installation and usage

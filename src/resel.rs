@@ -287,6 +287,13 @@ impl Resel {
   pub fn is_output(&self) -> bool { *self == Resel::Output }
   pub fn is_io(&self)     -> bool { self.is_input() || self.is_output() }
 
+
+  /// resel.delta_neighbors() returns the relative (x,y) of neighboring cells.
+  /// Used in the region mapper to find contiguous regions.
+  /// 
+  /// Wire neighborhoods are orthogonal and diagonal, meaning wire resels
+  /// touching on the sides or corners are part of the same region.
+  /// All others are only orthogonally contiguous. 
   pub fn delta_neighbors(&self) -> Vec<(isize, isize)> {
     match self {
       Resel::WireOrangeOff   | Resel::WireOrangeOn   |

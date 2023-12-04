@@ -1,41 +1,38 @@
-/*
-reselboard.rs
+//! reselboard.rs
+//! 
+//! ReselBoard wraps a Vec<Vec<Resel>> and provides relevant operations to loading/reading.
+//! 
+//! If a `resel` is a `pixel`, then a ReselBoard is an image.
+//! 
+//! Example:
+//! 
+//! ```rust
+//! let reselboard = image_to_reselboard(
+//!   load_image_from_filename("some_file.png").unwrap()
+//! );
+//! 
+//! ```
+//!
+//!TODOs:
+//! 
+//!- Test ReselBoard::get_neighbors?
+//!- ReselBoard from Vec<Vec<Resel>>: Have it create image?
+//!- ReselBoard `image` can be char or image? Have both?
+//!- impl `reselboard.set_resel(resel, x, y)`, updates pixel too
+//!- impl `reselboard.set_pixel(Rgba, x, y)`, updates resel too
+//!- Cleanup:
+//!  - Fix this doc
+//!  - Re-order / rename functions below
+//!- Handle overflows in neighbor code; perhaps use `?`
+//!- Ensure sorted ordering on outputs?
+//!- Examples
 
-Provides operations related to Vec<Vec<Resel>>.
 
-Provides:
-  ReselBoard{
-    board: Vec<Vec<Resel>>,
-    image: Option<DynamicImage>,
-    width: usize,
-    height: usize
-  }
-
-  image_to_vecvecresel(img: &DynamicImage) -> Vec<Vec<Resel>>
-  image_to_reselboard(image: DynamicImage) -> ReselBoard
-  load_image_from_filename(filename: &str) -> Option<DynamicImage>
-
-Also has:
-  delta_to_neighbor(x, y, dx, dy, width, height, wrap) -> (x+dx %w, y+dy %h)
-  get_neighbors(deltas, x, y, width, height) -> convenient list of coordinates
-
-
-TODOs:
-- Test ReselBoard::get_neighbors?
-- ReselBoard from Vec<Vec<Resel>>: Have it create image?
-- ReselBoard `image` can be char or image? Have both?
-- impl `reselboard.set_resel(resel, x, y)`, updates pixel too
-- impl `reselboard.set_pixel(Rgba, x, y)`, updates resel too
-- Cleanup:
-  - Fix this doc
-  - Re-order / rename functions below
-- Handle overflows in neighbor code; perhaps use `?`
-- Ensure sorted ordering on outputs?
-
-*/
 use crate::resel::{Resel};
 use image::{Rgba, DynamicImage, GenericImageView};
 
+/// Utility over Vec<Vec<Resel>>, i.e. grid of Resel
+/// todo: Optionally instantiate/include Vec<Vec<char>>
 pub struct ReselBoard {
   pub board: Vec<Vec<Resel>>,
   pub image: Option<DynamicImage>,
@@ -43,6 +40,7 @@ pub struct ReselBoard {
   pub height: usize
 }
 
+/// Consume an image and return a ReselBoard
 pub fn image_to_reselboard(image: DynamicImage) -> ReselBoard {
   let (width, height) = image.dimensions();
 
@@ -54,6 +52,8 @@ pub fn image_to_reselboard(image: DynamicImage) -> ReselBoard {
   }
 }
 
+/// Consume a Vec<Vec<Resel>> and return a ReselBoard
+/// (todo: optionally instantiate ReselBoard.image along with this)
 pub fn vecvecresel_to_reselboard(board: Vec<Vec<Resel>>) -> ReselBoard {
   let width = board.len();
   let height = board[0].len();
@@ -66,7 +66,7 @@ pub fn vecvecresel_to_reselboard(board: Vec<Vec<Resel>>) -> ReselBoard {
   }
 }
 
-// Helper function
+/// Helper function to load images
 pub fn load_image_from_filename(filename: &str) -> Option<DynamicImage> {
   match image::open(filename) {
     Ok(img) => Some(img),
@@ -74,8 +74,7 @@ pub fn load_image_from_filename(filename: &str) -> Option<DynamicImage> {
   }
 }
 
-// Instantiate Vec<Vec<Resel>>
-// Can't make it an impl from because reasons
+/// Instantiate Vec<Vec<Resel>> from &DynamicImage
 pub fn image_to_vecvecresel(img: &DynamicImage) -> Vec<Vec<Resel>> {
   let (width, height) = img.dimensions();
   let mut reselboard = vec![vec![Resel::Empty; height as usize]; width as usize];
@@ -90,6 +89,9 @@ pub fn image_to_vecvecresel(img: &DynamicImage) -> Vec<Vec<Resel>> {
 }
 
 impl ReselBoard {
+  /// For a given (x,y) coordinate, return the absolute neighbor coordinates
+  /// Wraps around the width and height of the board, and takes into account
+  /// the Resel-specific neighborhoods. (8 for wires, 4 for others)
   pub fn get_neighbors(&self, x: usize, y:usize) -> Vec<(usize, usize)> {
     get_neighbors(
       self.board[x][y].delta_neighbors(),
@@ -102,8 +104,9 @@ impl ReselBoard {
 }
 
 
-// delta_to_neighbor(x, y, dx, dy, width, height, wrap)
-// returns Some (x+dx, y+dy), None if out of bounds
+/// Returns (x+dx % width, y+dy%height), plus all the edge cases/conversions
+/// If `wraps`, always returns a value.
+/// Else, x+dx < 0 or x+dx >= width returns None, and likewise with y/height.
 pub fn delta_to_neighbor(
   x: usize, y: usize,
   dx: isize, dy: isize,
@@ -130,7 +133,9 @@ pub fn delta_to_neighbor(
   }
 }
 
-// get_neighbors(deltas, x, y, width, height) -> convenient list of coordinates
+/// Get a list of absolute coordinates of neighbors
+/// Given deltas, the pixel they apply to, and the board width/height 
+/// Conveneince wrapping over delta_to_neighbor.
 pub fn get_neighbors(
   deltas: Vec<(isize, isize)>, x: usize, y: usize, width: usize, height: usize
 ) -> Vec<(usize, usize)> {

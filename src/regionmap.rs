@@ -65,10 +65,12 @@ pub struct RegionMap {
   e.g. given region_index ri, what is the dense index?
   assume region_to_resel(ri).is_wire()
   
-  O(logn): wire_regions.iter().position(|&wire_ri| wire_ri == ri)
-  O(1):    reverse_dense[ri]
+  O(n): wire_regions.iter().position(|&wire_ri| wire_ri == ri)
+  O(1): reverse_dense[ri]
   */
   pub reverse_dense: Vec<usize>
+
+  
 }
 
 impl RegionMap {
@@ -206,6 +208,7 @@ impl From<&ReselBoard> for RegionMap {
   }
 }
 
+// todo: Consider `impl From` from filename, image, vec str
 
 #[cfg(test)]
 mod reselboard_tests {

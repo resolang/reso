@@ -49,10 +49,8 @@
 //! - Then, ARCHITECTURE.md, ALGORITHMS.md, README.md
 //! - Then, ResoCircuit
 
-
 use crate::resel::{Resel};
 use crate::regionmap::{RegionMap};
-
 
 /// IncidenceMap holds mapping of incident dense-region indices,
 /// based on a RegionMap.
@@ -137,12 +135,10 @@ impl From<&RegionMap> for IncidenceMap {
 
 // todo: impl from RB, image, vec str, file?
 
-// eof
-// todo: tests
-
 
 #[cfg(test)]
 mod reselboard_tests {
+
   use super::*;
   use crate::reselboard::{
     load_image_from_filename,
@@ -183,3 +179,5 @@ mod reselboard_tests {
     );
   }
 }
+
+// eof

@@ -33,6 +33,7 @@ use image::{Rgba, DynamicImage, GenericImageView};
 
 /// Utility over Vec<Vec<Resel>>, i.e. grid of Resel
 /// todo: Optionally instantiate/include Vec<Vec<char>>
+#[derive(Clone, Debug)]
 pub struct ReselBoard {
   pub board: Vec<Vec<Resel>>,
   pub image: Option<DynamicImage>,
@@ -103,6 +104,7 @@ impl ReselBoard {
   }
 }
 
+// todo: Consider impl From filename, image, text, to ReselBoard
 
 /// Returns (x+dx % width, y+dy%height), plus all the edge cases/conversions
 /// If `wraps`, always returns a value.

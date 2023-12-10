@@ -282,6 +282,20 @@ impl Resel {
     }
   }
 
+  pub fn wire_state(&self) -> Option<bool> {
+    match self {
+      Resel::WireOrangeOn
+      | Resel::WireSapphireOn
+      | Resel::WireLimeOn
+      => Some(true),
+      Resel::WireOrangeOff
+      | Resel::WireSapphireOff
+      | Resel::WireLimeOff
+      => Some(false),
+      _ => None
+    }
+  }
+
   pub fn is_empty(&self)  -> bool { *self == Resel::Empty }
   pub fn is_input(&self)  -> bool { *self == Resel::Input }
   pub fn is_output(&self) -> bool { *self == Resel::Output }

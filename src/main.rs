@@ -8,6 +8,7 @@ mod resel;
 mod reselboard;
 mod regionmap;
 mod incidencemap;
+mod resocircuit;
 
 use resel::{Resel
 };
@@ -16,12 +17,8 @@ use reselboard::{
   image_to_vecvecresel,
   load_image_from_filename,
 };
-use regionmap::{
-  region_map_from_reselboard,
-  RegionMap
-};
-
-
+use regionmap::{RegionMap};
+use resocircuit::{ResoCircuit};
 
 /*
 todo:

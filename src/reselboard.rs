@@ -1,4 +1,4 @@
-//! reselboard.rs
+//! reselboard.rs: A grid of Resels
 //! 
 //! ReselBoard wraps a Vec<Vec<Resel>> and provides relevant operations to loading/reading.
 //! 

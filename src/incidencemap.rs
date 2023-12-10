@@ -82,6 +82,8 @@ pub fn incidencemap_from_regionmap(
   let mut output_inc_logics:  Vec<Vec<usize>> = vec![];
   let mut wire_inc_outputs:   Vec<Vec<usize>> = vec![];
 
+  // e.g. input_inc_wires[dense_input_index] -> list of dense wire indices
+
   
   // Can't iterate over closures unless you "Box" them
   // I do not understand this and I don't like it

@@ -1,4 +1,3 @@
-
 //! regionmap.rs -- Identify the contiguous regions in a ReselBoard Vec<Vec<Resel>.
 //! 
 //! Exactly what it says on the tin, with two complications:

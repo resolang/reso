@@ -25,6 +25,7 @@ use regionmap::{
 
 /*
 todo:
+- rename "region" to "node"? be consistent
 - Clean up code, comments
 - Clean up docs
   - architecture

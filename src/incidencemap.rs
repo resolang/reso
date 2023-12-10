@@ -71,7 +71,7 @@ pub struct IncidenceMap {
 }
 
 /// Returns an IncidenceMap from a RegionMap
-pub fn incidencemap_from_regionmap(
+fn incidencemap_from_regionmap(
   rm: &RegionMap
 ) -> IncidenceMap {
   // todo redundant: There's a lot of repeating here
@@ -123,6 +123,20 @@ pub fn incidencemap_from_regionmap(
   }
 }
 
+impl From<RegionMap> for IncidenceMap {
+  fn from(rm: RegionMap) -> IncidenceMap {
+    incidencemap_from_regionmap(&rm)
+  }
+}
+
+impl From<&RegionMap> for IncidenceMap {
+  fn from(rm: &RegionMap) -> IncidenceMap {
+    incidencemap_from_regionmap(rm)
+  }
+}
+
+// todo: impl from RB, image, vec str, file?
+
 // eof
 // todo: tests
 
@@ -145,7 +159,7 @@ mod reselboard_tests {
     );
 
     let rm = RegionMap::from(&rb);
-    let im = incidencemap_from_regionmap(&rm);
+    let im = IncidenceMap::from(&rm);//incidencemap_from_regionmap(&rm);
 
     assert_eq!(
       im.input_inc_wires,

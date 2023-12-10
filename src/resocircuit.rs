@@ -53,7 +53,7 @@ todos:
   - read wire state from a port?
 */
 
-
+#[derive(Debug, Clone)]
 pub struct ResoCircuit {
   pub rb: ReselBoard,
   pub rm: RegionMap,
@@ -152,40 +152,50 @@ impl ResoCircuit{
   // - TDD methods to fix them
   // - 
   pub fn iterate(&mut self) {
+
     // Collect input state vector from incident wires
+
     for (ii, inc_wires) in self.im.input_inc_wires.iter().enumerate() {
       // ii = input_index, inc_wires = list of wire_index
-      println!("inc_wires={:?}",inc_wires);
-      println!("input_state={:?}",self.input_state);
       for wi in inc_wires.iter() {
-        println!("ii={},wi={}",ii,wi);
         self.input_state[ii][*wi] = self.wire_state[*wi]
       }
     }
 
+    /* todo remove
+    println!(
+      "logic_regions={:?}\nreverse_dense={:?}\nregion_to_resel={:?}",
+      self.rm.logic_regions,
+      self.rm.reverse_dense,
+      self.rm.region_to_resel,
+    );
+    */
     // Collect logic state from incident inputs
     for (li, inc_inputs) in self.im.logic_inc_inputs.iter().enumerate() {
       // li = logic_index, inc_inputs = list of input_index
-      let lri = self.rm.reverse_dense[li];
+      let lri = self.rm.logic_regions[li];//self.rm.reverse_dense[li];
 
       // For each incident input,
       for ii in inc_inputs.iter() {
         // ii = input_index
         
-        if self.rm.region_to_resel[lri] == Resel::XOR {
+        if self.rm.region_to_resel[lri] == Resel::AND {
           self.logic_state[li] = (
             self.logic_state[li] || self.input_state[*ii].iter().fold(
               true, |acc, &x| acc && x // AND over inputs incident wires
             )
           );
-        } else if self.rm.region_to_resel[lri] == Resel::AND {
+        } else if self.rm.region_to_resel[lri] == Resel::XOR {
           self.logic_state[li] = (
             self.logic_state[li] || self.input_state[*ii].iter().fold(
               false, |acc, &x| acc ^ x // XOR over inputs incident wires
             )
           );
         } else {
-          panic!("rc.rm.region_to_resel[lri] is not logic?!?");
+          panic!(
+            "rc.rm.region_to_resel[lri={}]={:?} is not logic?!?",
+            lri, self.rm.region_to_resel[lri]
+          );
         }
       }
     }
@@ -248,8 +258,10 @@ mod resocircuit_tests {
     ] {
       assert_eq!(rc.wire_state[ri], state)
     }
+    println!("{:?}", rc);
 
     rc.iterate();
+    println!("\n\n\n{:?}", rc);
     for (ri, state) in [
       (0, true), (1, false), (2, false), (3, true)
     ] {
@@ -257,6 +269,7 @@ mod resocircuit_tests {
     }
 
     rc.iterate();
+    println!("\n\n\n{:?}", rc);
     for (ri, state) in [
       (0, true), (1, false), (2, true), (3, false)
     ] {
@@ -265,3 +278,7 @@ mod resocircuit_tests {
   }
 
 }
+
+// TODO Lynn, from here
+
+// eof

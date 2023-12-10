@@ -45,6 +45,7 @@ use crate::reselboard::{
 ///   - `logic_regions` for And and Xor regions
 /// - The `reverse_dense` index gives you the dense index value for any `region_index`.
 ///   - This is hard to wrap your mind around; look at the tests for examples.
+#[derive(Debug, Clone)]
 pub struct RegionMap {
   pub xy_to_region: Vec<Vec<usize>>,            // [x][y] -> i
   pub width: usize,

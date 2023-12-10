@@ -60,6 +60,7 @@ use crate::regionmap::{RegionMap};
 /// RegionMap.wire_nodes[2].
 /// 
 /// This is used when executing a circuit.
+#[derive(Debug, Clone)]
 pub struct IncidenceMap {
   pub input_inc_wires:    Vec<Vec<usize>>,
   pub logic_inc_inputs:   Vec<Vec<usize>>,

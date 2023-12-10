@@ -96,16 +96,10 @@ impl RegionMap {
   }
 }
 
-/*
-let (
-  xy_to_region, region_to_xys, region_to_resel,
-  wire_regions, input_regions, logic_regions, output_regions
-) = region_map_from_reselboard(board)
-*/
 
 /// Given a reselboard, find and index regions of adjacent elements.
 /// Return as instance of RegionMap, which holds all the useful data.
-pub fn region_map_from_reselboard(
+fn region_map_from_reselboard(
   rb: &ReselBoard,
 ) -> RegionMap {
   // todo: Vec<Vec<>> not necessarily grid. Check!
@@ -198,6 +192,20 @@ pub fn region_map_from_reselboard(
   }
 }
 
+impl From<ReselBoard> for RegionMap {
+  /// rm = RegionMap::from(rb.clone());
+  fn from (rb: ReselBoard) -> RegionMap {
+    region_map_from_reselboard(&rb)
+  }
+}
+
+impl From<&ReselBoard> for RegionMap {
+  /// rm = RegionMap::from(rb.clone());
+  fn from (rb: &ReselBoard) -> RegionMap {
+    region_map_from_reselboard(rb)
+  }
+}
+
 
 #[cfg(test)]
 mod reselboard_tests {
@@ -230,7 +238,7 @@ mod reselboard_tests {
       image_to_reselboard(load_image_from_filename("./src/testing/test_05_06.png").unwrap()),
       image_to_reselboard(load_image_from_filename("./src/testing/test_06.png").unwrap()),
     ] {
-      let rm = region_map_from_reselboard(&rb);
+      let rm = RegionMap::from(&rb);//region_map_from_reselboard(&rb);
 
       let (width, height) = (rb.board.len(), rb.board[0].len());
       let n_regions = rm.region_to_xys.len();
@@ -322,7 +330,7 @@ mod reselboard_tests {
       ).unwrap()
     );
 
-    let rm = region_map_from_reselboard(&rb);
+    let rm = RegionMap::from(&rb);
 
     assert_eq!(
       rm.xy_to_region,
@@ -399,7 +407,7 @@ mod reselboard_tests {
       ).unwrap()
     );
 
-    let rm = region_map_from_reselboard(&rb);
+    let rm = RegionMap::from(&rb);
 
     assert_eq!(
       rm.xy_to_region,
@@ -485,7 +493,7 @@ mod reselboard_tests {
       ).unwrap()
     );
 
-    let rm = region_map_from_reselboard(&rb);
+    let rm = RegionMap::from(&rb);
 
     assert_eq!(
       rm.xy_to_region,

@@ -134,9 +134,7 @@ mod reselboard_tests {
     load_image_from_filename,
     image_to_reselboard,
   };
-  use crate::regionmap::{
-    region_map_from_reselboard
-  };
+  use crate::regionmap::{RegionMap};
 
   #[test]
   fn test_incident_map_on_half_adder() {
@@ -146,7 +144,7 @@ mod reselboard_tests {
       ).unwrap()
     );
 
-    let rm = region_map_from_reselboard(&rb);
+    let rm = RegionMap::from(&rb);
     let im = incidencemap_from_regionmap(&rm);
 
     assert_eq!(

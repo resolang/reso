@@ -14,12 +14,10 @@
 //! - Example code in docs
 //! - Region with mixed on/off wires should be classed as "on".
 //! - add `width`, `height` to `RegionMap`? Or even a whole `ReselBoard`?
-//! - `impl get_adjacent_regions(ri: usize) -> regions: Vec<usize>`
 //! - Ensure sorted ordering on all outputs?
 //! 
 //! - region mapper should probably return something like Result<Option<T>, E>
-//! - Find some way to make generic and publish the CCL algorithm
-//! - Make some of these `impls`?
+//! - Consider: This implements connected component labeling. Publish a generic version?
 
 use crate::resel::{Resel};
 use crate::reselboard::{
@@ -56,7 +54,7 @@ pub struct RegionMap {
 
   // dense class indices, for iterating over wires/inputs/logics/outputs
   // list of region indices; position in list is an inherent "dense index"
-  // todo redundant: Can these four items be made as one structure?
+  // todo: Can these four items be made as one structure?
   pub wire_regions:     Vec<usize>,
   pub input_regions:    Vec<usize>,
   pub logic_regions:    Vec<usize>,
@@ -594,9 +592,8 @@ mod reselboard_tests {
     );
   }
 
-  // todo: We could use more tests for more examples
-  // todo: The above tests could be made more robust.
-  // They're fragile to differences in ordering
+  // todo: We could use more tests for more examples.
+  // todo: The above tests could be made more robust; too fragile to ordering
 }
 
 // eof

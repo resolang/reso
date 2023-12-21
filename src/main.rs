@@ -19,39 +19,3 @@ use reselboard::{
 };
 use regionmap::{RegionMap};
 use resocircuit::{ResoCircuit};
-
-/*
-todo:
-- rename "region" to "node"? be consistent
-- Clean up code, comments
-- Clean up docs
-  - architecture
-  - algorithms
-  - each file
-  - readme.md
-- Code:
-  - ResoCircuit.rs
-  - main.rs CLI
-- Far later:
-  - See `todo redundant` when I'm better at Rust.
-    - How to restructure?
-    - e.g. instead of `wire_regions[wi]` maybe `dense[Class::Wire][wi]`?
-  - resolang.dev site
-  - IDE / tools?
-  - Debugger which shows ReselBoard, RegionMap, AdjacencyMap, ResoCircuit state
-*/
-
-/*
-ResoCircuit ideas
-- Should hold a RegionMap, IncidenceMap at least?
-  - Some can be Optional to save memory
-- Needs to hold temporary state for wires, inputs, logics, and outputs
-- Optional render step
-- Simple iteration
-- Serialize to format
-
-#[derive(Debug, Clone)]
-struct ResoCircuit {
-}
-
-*/

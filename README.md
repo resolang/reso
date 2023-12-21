@@ -1,34 +1,16 @@
 # Reso -- A visual logic circuit design language
 
-![Reso logo](./docs/reso_logo.gif)
+![Reso logo](./reso_logo.gif)
 
 Reso is a visual circuit design language, meant to let anybody who can draw pixel art create executable logic circuits, inspired by Redstone and Conway's Game of Life.
 
 
-
 ---
-
-# TODOs:
-
-- New logo
-- Custom palettes defined by a PNG
-- Docs
-- README.md
-- ARCHITECTURE.md
-- ALGORITHMS.md
-- Oh, the code is not finished either.
-
-- Trailer
-  - Draw wires
-  - Custom palettes! Do a Warhol kind of thing
-  - Cool circuits!
-  - Animated logo
 
 
 # Installation and usage
 
 TODO: Cargo, CLI instructions
-
 
 
 # Ten-color palette

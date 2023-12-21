@@ -334,10 +334,8 @@ mod resocircuit_tests {
       load_image_from_filename(
         "./src/testing/test_half_adder_03.png"
       ).unwrap()
-    );
-    
+    ); 
   }
-
 }
 
 // eof

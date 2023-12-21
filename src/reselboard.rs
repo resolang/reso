@@ -54,7 +54,7 @@ fn image_to_reselboard(image: DynamicImage) -> ReselBoard {
 
 /// Consume a Vec<Vec<Resel>> and return a ReselBoard
 /// (todo: optionally instantiate ReselBoard.image along with this)
-pub fn vecvecresel_to_reselboard(board: Vec<Vec<Resel>>) -> ReselBoard {
+fn vecvecresel_to_reselboard(board: Vec<Vec<Resel>>) -> ReselBoard {
   let width = board.len();
   let height = board[0].len();
   // todo: check board is a grid, at least one whole pixel

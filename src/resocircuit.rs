@@ -4,7 +4,6 @@ use crate::resel::{Resel};
 use crate::reselboard::{
   ReselBoard,
   load_image_from_filename,
-  image_to_reselboard,
 };
 use crate::regionmap::{RegionMap};
 use crate::incidencemap::{IncidenceMap};
@@ -245,7 +244,7 @@ mod resocircuit_tests {
   #[test]
   fn test_initialize_halfadder() {
     let mut rc = ResoCircuit::from(
-      image_to_reselboard(
+      ReselBoard::from(
         load_image_from_filename(
           "./src/testing/test_half_adder_01.png"
         ).unwrap()

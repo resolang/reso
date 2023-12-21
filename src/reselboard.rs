@@ -12,12 +12,12 @@
 //! );
 //! 
 //! ```
-//!
+
+
 //!TODOs:
+//!- ReselBoard Froms
+//!- ReselBoard: Rethink how to handle image, text.
 //! 
-//!- Test ReselBoard::get_neighbors?
-//!- ReselBoard from Vec<Vec<Resel>>: Have it create image?
-//!- ReselBoard `image` can be char or image? Have both?
 //!- impl `reselboard.set_resel(resel, x, y)`, updates pixel too
 //!- impl `reselboard.set_pixel(Rgba, x, y)`, updates resel too
 //!- Cleanup:
@@ -32,7 +32,6 @@ use crate::resel::{Resel};
 use image::{Rgba, DynamicImage, GenericImageView};
 
 /// Utility over Vec<Vec<Resel>>, i.e. grid of Resel
-/// todo: Optionally instantiate/include Vec<Vec<char>>
 #[derive(Clone, Debug)]
 pub struct ReselBoard {
   pub board: Vec<Vec<Resel>>,
@@ -42,7 +41,7 @@ pub struct ReselBoard {
 }
 
 /// Consume an image and return a ReselBoard
-pub fn image_to_reselboard(image: DynamicImage) -> ReselBoard {
+fn image_to_reselboard(image: DynamicImage) -> ReselBoard {
   let (width, height) = image.dimensions();
 
   ReselBoard {
@@ -89,6 +88,18 @@ pub fn image_to_vecvecresel(img: &DynamicImage) -> Vec<Vec<Resel>> {
   reselboard
 }
 
+impl From<DynamicImage> for ReselBoard {
+  fn from(image: DynamicImage) -> Self {
+    image_to_reselboard(image)
+  }
+}
+
+impl From<Vec<Vec<Resel>>> for ReselBoard {
+  fn from(board: Vec<Vec<Resel>>) -> Self {
+    vecvecresel_to_reselboard(board)
+  }
+}
+
 impl ReselBoard {
   /// For a given (x,y) coordinate, return the absolute neighbor coordinates
   /// Wraps around the width and height of the board, and takes into account
@@ -104,7 +115,6 @@ impl ReselBoard {
   }
 }
 
-// todo: Consider impl From filename, image, text, to ReselBoard
 
 /// Returns (x+dx % width, y+dy%height), plus all the edge cases/conversions
 /// If `wraps`, always returns a value.

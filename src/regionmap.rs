@@ -216,31 +216,29 @@ mod reselboard_tests {
   use super::*;
   use crate::reselboard::{
     load_image_from_filename,
-    image_to_reselboard,
-    vecvecresel_to_reselboard,
   };
 
   #[test]
   fn test_regon_map_basic() {
     for rb in [
-      vecvecresel_to_reselboard(vec![vec![Resel::Empty]]),
-      image_to_reselboard(load_image_from_filename("./src/testing/test_01_new-palette.png").unwrap()),
-      image_to_reselboard(load_image_from_filename("./src/testing/test_02_new-palette_1.png").unwrap()),
-      image_to_reselboard(load_image_from_filename("./src/testing/test_02_new-palette.png").unwrap()),
-      image_to_reselboard(load_image_from_filename("./src/testing/test_03_01.png").unwrap()),
-      image_to_reselboard(load_image_from_filename("./src/testing/test_03_02.png").unwrap()),
-      image_to_reselboard(load_image_from_filename("./src/testing/test_03_03.png").unwrap()),
-      image_to_reselboard(load_image_from_filename("./src/testing/test_03_04.png").unwrap()),
-      image_to_reselboard(load_image_from_filename("./src/testing/test_03_alloff.png").unwrap()),
-      image_to_reselboard(load_image_from_filename("./src/testing/test_03_allon.png").unwrap()),
-      image_to_reselboard(load_image_from_filename("./src/testing/test_04.png").unwrap()),
-      image_to_reselboard(load_image_from_filename("./src/testing/test_05_01.png").unwrap()),
-      image_to_reselboard(load_image_from_filename("./src/testing/test_05_02.png").unwrap()),
-      image_to_reselboard(load_image_from_filename("./src/testing/test_05_03.png").unwrap()),
-      image_to_reselboard(load_image_from_filename("./src/testing/test_05_04.png").unwrap()),
-      image_to_reselboard(load_image_from_filename("./src/testing/test_05_05.png").unwrap()),
-      image_to_reselboard(load_image_from_filename("./src/testing/test_05_06.png").unwrap()),
-      image_to_reselboard(load_image_from_filename("./src/testing/test_06.png").unwrap()),
+      ReselBoard::from(vec![vec![Resel::Empty]]),
+      ReselBoard::from(load_image_from_filename("./src/testing/test_01_new-palette.png").unwrap()),
+      ReselBoard::from(load_image_from_filename("./src/testing/test_02_new-palette_1.png").unwrap()),
+      ReselBoard::from(load_image_from_filename("./src/testing/test_02_new-palette.png").unwrap()),
+      ReselBoard::from(load_image_from_filename("./src/testing/test_03_01.png").unwrap()),
+      ReselBoard::from(load_image_from_filename("./src/testing/test_03_02.png").unwrap()),
+      ReselBoard::from(load_image_from_filename("./src/testing/test_03_03.png").unwrap()),
+      ReselBoard::from(load_image_from_filename("./src/testing/test_03_04.png").unwrap()),
+      ReselBoard::from(load_image_from_filename("./src/testing/test_03_alloff.png").unwrap()),
+      ReselBoard::from(load_image_from_filename("./src/testing/test_03_allon.png").unwrap()),
+      ReselBoard::from(load_image_from_filename("./src/testing/test_04.png").unwrap()),
+      ReselBoard::from(load_image_from_filename("./src/testing/test_05_01.png").unwrap()),
+      ReselBoard::from(load_image_from_filename("./src/testing/test_05_02.png").unwrap()),
+      ReselBoard::from(load_image_from_filename("./src/testing/test_05_03.png").unwrap()),
+      ReselBoard::from(load_image_from_filename("./src/testing/test_05_04.png").unwrap()),
+      ReselBoard::from(load_image_from_filename("./src/testing/test_05_05.png").unwrap()),
+      ReselBoard::from(load_image_from_filename("./src/testing/test_05_06.png").unwrap()),
+      ReselBoard::from(load_image_from_filename("./src/testing/test_06.png").unwrap()),
     ] {
       let rm = RegionMap::from(&rb);//region_map_from_reselboard(&rb);
 
@@ -328,7 +326,7 @@ mod reselboard_tests {
 
     Someone better at Rust should rework this.
     */
-    let rb = image_to_reselboard(
+    let rb = ReselBoard::from(
       load_image_from_filename(
         "./src/testing/test_01_new-palette.png"
       ).unwrap()
@@ -405,7 +403,7 @@ mod reselboard_tests {
 
     Someone better at Rust should rework this.
     */
-    let rb = image_to_reselboard(
+    let rb = ReselBoard::from(
       load_image_from_filename(
         "./src/testing/test_06.png"
       ).unwrap()
@@ -491,7 +489,7 @@ mod reselboard_tests {
 
     Someone better at Rust should rework this.
     */
-    let rb = image_to_reselboard(
+    let rb = ReselBoard::from(
       load_image_from_filename(
         "./src/testing/test_half_adder.png"
       ).unwrap()

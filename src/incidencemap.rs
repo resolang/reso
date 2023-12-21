@@ -50,6 +50,7 @@
 //! - Then, ResoCircuit
 
 use crate::resel::{Resel};
+use crate::reselboard::{ReselBoard};
 use crate::regionmap::{RegionMap};
 
 /// IncidenceMap holds mapping of incident dense-region indices,
@@ -143,13 +144,12 @@ mod reselboard_tests {
   use super::*;
   use crate::reselboard::{
     load_image_from_filename,
-    image_to_reselboard,
   };
   use crate::regionmap::{RegionMap};
 
   #[test]
   fn test_incident_map_on_half_adder() {
-    let rb = image_to_reselboard(
+    let rb = ReselBoard::from(
       load_image_from_filename(
         "./src/testing/test_half_adder.png"
       ).unwrap()

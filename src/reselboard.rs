@@ -1,8 +1,10 @@
 //! reselboard.rs: A grid of Resels
 //! 
-//! ReselBoard wraps a Vec<Vec<Resel>> and provides relevant operations to loading/reading.
+//! ReselBoard wraps a Grid<Resel> "board", optionally provides a "mirror"
+//! of the board (in the form of an image or text grid), and provides relevant
+//! operations to loading/reading a board from an image, text, or filename
 //! 
-//! If a `resel` is a `pixel`, then a ReselBoard is an image.
+//! By analogy, resel~pixel, and reselboard~image
 //! 
 //! Example:
 //! 
@@ -14,19 +16,20 @@
 //! ```
 
 
-//!TODOs:
-//!- ReselBoard Froms
-//!- ReselBoard: Rethink how to handle image, text.
-//! 
-//!- impl `reselboard.set_resel(resel, x, y)`, updates pixel too
-//!- impl `reselboard.set_pixel(Rgba, x, y)`, updates resel too
-//!- Cleanup:
-//!  - Fix this doc
-//!  - Re-order / rename functions below
-//!- Handle overflows in neighbor code; perhaps use `?`
-//!- Ensure sorted ordering on outputs?
-//!- Examples
-
+/*
+TODOs:
+- Consider using Grid<Resel> instead of Vec<Vec<Resel>>
+- handle integer overflows, use checked_add, etc.
+- Ensure sorted output?
+- mirrors images:
+  - rename image to mirror_image
+  - get_mirror_image, set_mirror_image, dump_mirror_image
+- mirror text:
+  - Rework to use char, not str
+  - get_mirror_text, set_mirror_text, dump_mirror_text
+- set_resel_and_update_mirror(x,y)
+- Examples
+*/
 
 use crate::resel::{Resel};
 use image::{Rgba, DynamicImage, GenericImageView};
@@ -55,9 +58,10 @@ fn image_to_reselboard(image: DynamicImage) -> ReselBoard {
 /// Consume a Vec<Vec<Resel>> and return a ReselBoard
 /// (todo: optionally instantiate ReselBoard.image along with this)
 fn vecvecresel_to_reselboard(board: Vec<Vec<Resel>>) -> ReselBoard {
+  // todo: check board is a grid, at least one whole pixel
+  // consider using 'grid'
   let width = board.len();
   let height = board[0].len();
-  // todo: check board is a grid, at least one whole pixel
   ReselBoard {
     board: board,
     image: None, // todo: Optionally generate from ReselBoard
@@ -88,6 +92,21 @@ pub fn image_to_vecvecresel(img: &DynamicImage) -> Vec<Vec<Resel>> {
   reselboard
 }
 
+/// Instantiate DynamicImage from &Vec<Vec<Resel>>;
+/*
+// todo another time; DynamicImage is hard to work with, can't figure this out
+pub fn vecvecresel_to_image(board: &Vec<Vec<Resel>>) -> DynamicImage {
+  // todo: Another place where we'd benefit from using 'grid'. Needs checks
+  let width = board.len();
+  let height = board[0].len();
+
+  let as_pixels: Vec<Vec<Rgba<u8>>> = board.into_iter()
+    .map(|row| {row.into_iter()
+      .map(|resel: &Resel| <Rgba<u8>>::from(*resel)).collect()
+    }).collect();
+}
+*/
+
 impl From<DynamicImage> for ReselBoard {
   fn from(image: DynamicImage) -> Self {
     image_to_reselboard(image)
@@ -113,6 +132,12 @@ impl ReselBoard {
       self.height
     )
   }
+
+  /// Replace `image` with None, erasing the reference and saving memory
+  pub fn dump_image_to_save_memory(&mut self) {
+    self.image = None
+  }
+
 }
 
 

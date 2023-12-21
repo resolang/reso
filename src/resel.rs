@@ -48,6 +48,11 @@
 //! 
 //! ```
 
+/*
+TODOs:
+- Consider using `char` rather than `str`. 
+*/
+
 use image::{Rgba};
 
 

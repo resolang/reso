@@ -119,13 +119,13 @@ impl From<ReselBoard> for ResoCircuit {
     input_state = [[False for _ in inc_wires]
       for inc_wires in im.input_inc_wires]
     */
-    let mut input_state: Vec<Vec<bool>> = im.input_inc_wires
+    let input_state: Vec<Vec<bool>> = im.input_inc_wires
       .iter().map(
         |inc_wires| { vec![false; inc_wires.len()] }
       ).collect();
     
-    let mut logic_state  = vec![false; rm.logic_regions.len()];
-    let mut output_state = vec![false; rm.output_regions.len()];
+    let logic_state  = vec![false; rm.logic_regions.len()];
+    let output_state = vec![false; rm.output_regions.len()];
 
     ResoCircuit{
       rb: rb,

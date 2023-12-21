@@ -13,6 +13,9 @@ Reso is a visual circuit design language, meant to let anybody who can draw pixe
 TODO: Cargo, CLI instructions
 
 
+# Example circuits
+
+
 # Ten-color palette
 
 There are ten syntactically-relevant colors which get compiled, the other 16777206 colors are ignored.  The palette is an important part of Reso! A region is defined by the colors it is made out of.
@@ -38,6 +41,7 @@ For backwards compatibility with new functionality, we reserve a total of 48 col
 The colors of different wires don't have any significance. They exist to make it easier to wire on the 2D torus, and to make it easier to keep track of the meaning of wires.
 
 ## Reserved 48-color palette
+
 Here's the full palette of colors that we consider "reserved". Other colors are 'whitespace', i.e. will not have any semantic significance.
 
 | Hue               | Saturated (1) | Dark (2)      | Light (3)     | Unsaturated (4) |
@@ -110,3 +114,26 @@ Reso was influenced by redstone, esolangs, and Python. The goal was to make digi
 
 - [The Real Estate Standards Organization](https://www.reso.org/), which is completely unrelated to this.
 - [18kimn/Reso](https://github.com/18kimn/reso), an unrelated project which turns R into an esoteric language.
+
+---
+
+# TODOs:
+
+- New logo
+- Custom palettes defined by a PNG
+- Rename "region" to "node"? Be consistent
+- Formalize some concept of wire "color" and resel "class" or "order"
+- Far later:
+  - See `todo redundant` when I'm better at Rust. How to restructure?
+    - e.g. instead of `wire_regions[wi]` maybe `dense[Class::Wire][wi]`?
+  - resolang.dev site
+  - IDE / tools?
+  - Debugger which shows ReselBoard, RegionMap, AdjacencyMap, ResoCircuit state
+
+- Trailer
+  - Draw wires
+  - Custom palettes! Do a Warhol kind of thing
+  - Cool circuits
+  - Animated logo
+- Move CLI to cli.rs
+- bin.rs, lib.rs

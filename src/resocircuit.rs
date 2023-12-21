@@ -1,4 +1,21 @@
 //! resocircuit.rs: Executable Reso circuits.
+//! 
+//! Example:
+//! ```rust
+//! let mut rc = ResoCircuit::from(
+//!   ReselBoard::from(
+//!     load_image_from_filename(
+//!       "./src/testing/test_half_adder_01.png"
+//!     ).unwrap()
+//!   )
+//! );
+//! rc.iterate();
+//! rc.update_pixels();
+//! 
+//! // do something with rc.get_image().unwrap()
+//! ```
+
+use image::{DynamicImage, Rgba, GenericImage};
 
 use crate::resel::{Resel};
 use crate::reselboard::{
@@ -9,8 +26,6 @@ use crate::regionmap::{RegionMap};
 use crate::incidencemap::{IncidenceMap};
 
 /*
-todos:
-
 - maintains to iterate:
 
   - input_state:  vec<vec<bool>> // shape: im.input_inc_wires
@@ -40,7 +55,6 @@ todos:
   for each output: collect from incident inputs, logics
   for each wire: collect from incident outputs
 
-  man why did i put it in a table?
 
   also calls "update_image" by default
 
@@ -146,10 +160,8 @@ impl ResoCircuit{
     }
   }
 
-  // TODO Lynn, from here!
-  // - Break `iterate` into smaller &mut self methods
-  // - TDD methods to fix them
-  // - 
+  /// Simulate one iteration of the circuit, updating state
+  /// Does not update ResoCircuit.rb.image
   pub fn iterate(&mut self) {
 
     // Collect input state vector from incident wires
@@ -231,10 +243,44 @@ impl ResoCircuit{
   }
 
 
-  // fn to update image pixels
-
   // fn to get image
+  pub fn get_image(&self) -> Option<&DynamicImage> {
+    self.rb.image.as_ref()
+  }
 
+  /// Update the pixels stored in the image, if it exists
+  pub fn update_pixels(&mut self) {
+    if self.rb.image == None {
+      // Return early if no image
+      return
+    }
+
+    // Let's iterate over every wire region and update its pixels
+    for (wi, ri) in self.rm.wire_regions.iter().enumerate() {
+      // First, get the Resel class we want to update to.
+      // (todo: This should be less ugly)
+      let update_to_resel = match self.rm.region_to_resel[*ri] {
+        Resel::WireOrangeOn | Resel::WireOrangeOff => {
+          if self.wire_state[wi] {Resel::WireOrangeOn} else {Resel::WireOrangeOff}
+        },
+        Resel::WireSapphireOn | Resel::WireSapphireOff => {
+          if self.wire_state[wi] {Resel::WireSapphireOn} else {Resel::WireSapphireOff}
+        },
+        Resel::WireLimeOn | Resel::WireLimeOff => {
+          if self.wire_state[wi] {Resel::WireLimeOn} else {Resel::WireLimeOff}
+        },
+        _ => {
+          panic!("Oh no, ResoCircuit.update_pixels() found a wire_region pointing to something not a wire. This shouldn't be possible.");
+        }
+      };
+      let update_to_pixel = <Rgba<u8>>::from(update_to_resel);
+
+      // Now, let's update all the pixels in the region
+      for (x,y) in &self.rm.region_to_xys[*ri] {
+        self.rb.image.as_mut().unwrap().put_pixel(*x as u32, *y as u32, update_to_pixel);
+      }
+    }
+  }
 }
 
 #[cfg(test)]
@@ -242,7 +288,7 @@ mod resocircuit_tests {
   use super::*;
 
   #[test]
-  fn test_initialize_halfadder() {
+  fn test_iterate_halfadder() {
     let mut rc = ResoCircuit::from(
       ReselBoard::from(
         load_image_from_filename(
@@ -257,27 +303,41 @@ mod resocircuit_tests {
     ] {
       assert_eq!(rc.wire_state[ri], state)
     }
-    println!("{:?}", rc);
 
     rc.iterate();
-    println!("\n\n\n{:?}", rc);
+    rc.update_pixels();
+    // Check wire state
     for (ri, state) in [
       (0, true), (1, false), (2, false), (3, true)
     ] {
       assert_eq!(rc.wire_state[ri], state)
     }
+    // Check image
+    assert_eq!(
+      rc.get_image().unwrap().clone(),
+      load_image_from_filename(
+        "./src/testing/test_half_adder_02.png"
+      ).unwrap()
+    );
 
     rc.iterate();
-    println!("\n\n\n{:?}", rc);
+    rc.update_pixels();
     for (ri, state) in [
       (0, true), (1, false), (2, true), (3, false)
     ] {
       assert_eq!(rc.wire_state[ri], state)
     }
+    // Check image
+    
+    assert_eq!(
+      rc.get_image().unwrap().clone(),
+      load_image_from_filename(
+        "./src/testing/test_half_adder_03.png"
+      ).unwrap()
+    );
+    
   }
 
 }
-
-// TODO Lynn, from here
 
 // eof

@@ -119,17 +119,22 @@ Reso was influenced by redstone, esolangs, and Python. The goal was to make digi
 
 # TODOs:
 
+Right now, Reso only runs on images (not on text or compiled-and-serialized-and-saved circuits) and outputs images. No other magic, but there's a lot of room for magic!
+
+- Output directly to gif support
+- Custom palettes defined by a .png
+- Bring ascii/char support up to that of `image`
 - New logo
-- Custom palettes defined by a PNG
-- Rename "region" to "node"? Be consistent
-- Formalize some concept of wire "color" and resel "class" or "order"
+- Consistency with concepts:
+  - Region? Node? Element?
+  - Concept of wire "color" and resel "class" or "order"
 - Far later:
   - See `todo redundant` when I'm better at Rust. How to restructure?
     - e.g. instead of `wire_regions[wi]` maybe `dense[Class::Wire][wi]`?
   - resolang.dev site
   - IDE / tools?
   - Debugger which shows ReselBoard, RegionMap, AdjacencyMap, ResoCircuit state
-
+- Optional: Serialize compiled ResoCircuit
 - Trailer
   - Draw wires
   - Custom palettes! Do a Warhol kind of thing
@@ -137,3 +142,4 @@ Reso was influenced by redstone, esolangs, and Python. The goal was to make digi
   - Animated logo
 - Move CLI to cli.rs
 - bin.rs, lib.rs
+- Push `0.0.3` to crates.io

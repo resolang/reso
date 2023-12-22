@@ -78,6 +78,14 @@ pub fn load_image_from_filename(filename: &str) -> Option<DynamicImage> {
   }
 }
 
+pub fn load_image_from_filename_string(filename: String) -> Option<DynamicImage> {
+  match image::open(filename) {
+    Ok(img) => Some(img),
+    Err(_)  => None
+  }
+}
+
+
 /// Instantiate Vec<Vec<Resel>> from &DynamicImage
 pub fn image_to_vecvecresel(img: &DynamicImage) -> Vec<Vec<Resel>> {
   let (width, height) = img.dimensions();

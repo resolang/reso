@@ -41,7 +41,7 @@ struct Args {
     #[arg(short, long, default_value_t = 1)]
     numiter: usize,
 
-    /// Verbosity
+    /// Verbosity; todo, fix so that it's a flag.
     #[arg(short, long)]
     verbose: Option<bool>,
 }
@@ -68,6 +68,7 @@ pub fn main() {
 
     if verbose {
       println!("Step {} / {}", tt_interpolated, args.numiter);
+      //println!("{:?}", rc);
     }
     rc.iterate();
     rc.update_pixels();

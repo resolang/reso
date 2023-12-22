@@ -119,6 +119,9 @@ Reso was influenced by redstone, esolangs, and Python. The goal was to make digi
 
 # TODOs:
 
+Immediately,
+- Fix `resocircuit.rs`, more unit tests
+
 Right now, Reso only runs on images (not on text or compiled-and-serialized-and-saved circuits) and outputs images. No other magic, but there's a lot of room for magic!
 
 - Output directly to gif support

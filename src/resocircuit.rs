@@ -167,8 +167,8 @@ impl ResoCircuit{
     // Collect input state vector from incident wires
     for (ii, inc_wires) in self.im.input_inc_wires.iter().enumerate() {
       // ii = input_index, inc_wires = list of wire_index
-      for wi in inc_wires.iter() {
-        self.input_state[ii][*wi] = self.wire_state[*wi]
+      for (inc_wi, wi) in inc_wires.iter().enumerate() {
+        self.input_state[ii][inc_wi] = self.wire_state[*wi]
       }
     }
 

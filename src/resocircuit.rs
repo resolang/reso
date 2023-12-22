@@ -165,7 +165,6 @@ impl ResoCircuit{
   pub fn iterate(&mut self) {
 
     // Collect input state vector from incident wires
-
     for (ii, inc_wires) in self.im.input_inc_wires.iter().enumerate() {
       // ii = input_index, inc_wires = list of wire_index
       for wi in inc_wires.iter() {

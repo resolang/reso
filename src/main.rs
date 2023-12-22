@@ -15,6 +15,7 @@ mod incidencemap;
 mod resocircuit;
 
 use image::{DynamicImage};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 //use resel::{Resel};
 use reselboard::{
@@ -58,6 +59,7 @@ pub fn main() {
   let verbose = args.verbose.unwrap_or(false);
 
   let mut tt_interpolated: String;
+  let start_time = SystemTime::now();
   // Index from 1 to N, inclusive. "0" is the input image
   for tt in 1..(args.numiter+1) {
     tt_interpolated = format!(
@@ -73,6 +75,11 @@ pub fn main() {
     rc.get_image().unwrap().save(
       format!("{}{}.png", args.output, tt_interpolated)
     );
-
+  }
+  if verbose {
+    println!(
+      "Done in {}ms",
+      SystemTime::now().duration_since(start_time).unwrap().as_millis()
+    )
   }
 }

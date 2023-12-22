@@ -21,6 +21,7 @@ use crate::resel::{Resel};
 use crate::reselboard::{
   ReselBoard,
   load_image_from_filename,
+  load_image_from_filename_string
 };
 use crate::regionmap::{RegionMap};
 use crate::incidencemap::{IncidenceMap};
@@ -284,7 +285,9 @@ impl ResoCircuit{
 
 #[cfg(test)]
 mod resocircuit_tests {
-  use super::*;
+  use crate::reselboard::load_image_from_filename_string;
+
+use super::*;
 
   #[test]
   fn test_iterate_halfadder() {
@@ -334,6 +337,29 @@ mod resocircuit_tests {
         "./src/testing/test_half_adder_03.png"
       ).unwrap()
     ); 
+  }
+
+  #[test]
+  fn test_reso_logo() {
+    let mut rc = ResoCircuit::from(
+      ReselBoard::from(
+        load_image_from_filename(
+          "./reso_logo.png"
+        ).unwrap()
+      )
+    );
+
+    for tt in 1..9 {
+      rc.iterate();
+      rc.update_pixels();
+      assert_eq!(
+        *rc.get_image().unwrap(),
+        load_image_from_filename_string(
+          format!("./src/testing/reso_logo_{}.png", tt)
+        ).unwrap()
+      );
+
+    }
   }
 }
 

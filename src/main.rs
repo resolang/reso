@@ -126,11 +126,4 @@ fn print_duration(duration: Result<Duration, SystemTimeError>) {
   }
 }
 
-/*
-todos:
-- better verbosity
-- save images optional
-- 
-*/
-
 // eof

@@ -1,18 +1,29 @@
-# TODOs
 
-A list of uncompleted TODOs
+# TODOs:
 
-## Roadmap
+Long-term goals:
+- Better ASCII support
+- Built-in gif support
+- Nice new logo
+- Built-in viewer, editor
 
-- ResoCircuit
-- CLI
-- 0.1.0 release to crates.io
+Publishing:
+- resolang.dev project page
+- Documentation
+- Move off personal GitHub
+- Example circuits
+
+Features and implementation:
+- Direct-to-gif output
+- Custom palettes
+- Better ascii support
+- Move to `Grid<>` from `Vec<Vec<>>`
 - New logo
-- Custom palette support
+- Consistency with concepts. (Region/node/element. Element 'class/order', wire 'color'.)
+- ResoCircuit serialize/deserialize.
 
-
-## Errata
-
-- [ ] Many crates have functions which should be `impls`. Make it so.
-- [ ] "Classes" (wires, logic) are loosely described and not formalized. Make it so.
-- [ ] Regions are nodes are elements. Be consistent throughout. 
+Tooling:
+- Circuit viewer, simulation controller.
+- WASM drag-and-drop simulator.
+- ResoCircuit debugger / analyzer / anatomizer tool.
+- Circuit live editor.

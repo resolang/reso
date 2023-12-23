@@ -10,11 +10,13 @@ Reso is a visual circuit design language, meant to let anybody who can draw pixe
 
 # Installation and usage
 
-TODO: Cargo, CLI instructions
+```sh
+# Install Reso for the first time!
+cargo install reso
 
-
-# Example circuits
-
+# Run 16 simulation steps on `reso_logo.png`, outputting to `out_xx.png`.
+reso -input reso_logo.png -output out_ -numiter 16 -verbose
+```
 
 # Ten-color palette
 
@@ -114,38 +116,3 @@ Reso was influenced by redstone, esolangs, and Python. The goal was to make digi
 
 - [The Real Estate Standards Organization](https://www.reso.org/), which is completely unrelated to this.
 - [18kimn/Reso](https://github.com/18kimn/reso), an unrelated project which turns R into an esoteric language.
-
----
-
-# TODOs:
-
-
-Publishing:
-- Project page
-- Documentation
-- Move to Reso project on GitHub, GitLab. (Not my personal!)
-
-Right now, Reso only runs on images (not on text or compiled-and-serialized-and-saved circuits) and outputs images. No other magic, but there's a lot of room for magic!
-
-- Output directly to gif support
-- Custom palettes defined by a .png
-- Bring ascii/char support up to that of `image`
-- New logo
-- Consistency with concepts:
-  - Region? Node? Element?
-  - Concept of wire "color" and resel "class" or "order"
-- Far later:
-  - See `todo redundant` when I'm better at Rust. How to restructure?
-    - e.g. instead of `wire_regions[wi]` maybe `dense[Class::Wire][wi]`?
-  - resolang.dev site
-  - IDE / tools?
-  - Debugger which shows ReselBoard, RegionMap, AdjacencyMap, ResoCircuit state
-- Optional: Serialize compiled ResoCircuit
-- Trailer
-  - Draw wires
-  - Custom palettes! Do a Warhol kind of thing
-  - Cool circuits
-  - Animated logo
-- Move CLI to cli.rs
-- bin.rs, lib.rs
-- Push `0.0.3` to crates.io

@@ -119,8 +119,11 @@ Reso was influenced by redstone, esolangs, and Python. The goal was to make digi
 
 # TODOs:
 
-Immediately,
-- Fix `resocircuit.rs`, more unit tests
+
+Publishing:
+- Project page
+- Documentation
+- Move to Reso project on GitHub, GitLab. (Not my personal!)
 
 Right now, Reso only runs on images (not on text or compiled-and-serialized-and-saved circuits) and outputs images. No other magic, but there's a lot of room for magic!
 

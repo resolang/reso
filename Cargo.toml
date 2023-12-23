@@ -1,7 +1,12 @@
 [package]
-name = "resolang"
-version = "0.1.0"
-edition = "2021"
+name          = "reso"
+version       = "0.0.3"
+author        = ["Lynn Pepin <reso@lynndotpy.xyz>"]
+edition       = "2021"
+license-file  = "LICENSE"
+description   = "Reso: A visual pixel-art logic-circuit design language"
+repository    = "https://github.com/lynnpepin/reso-rust"
+keywords      = ["utility", "mathematics", "simulation", "circuit"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

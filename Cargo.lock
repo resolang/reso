@@ -526,8 +526,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "resolang"
-version = "0.1.0"
+name = "reso"
+version = "0.0.3"
 dependencies = [
  "clap",
  "image",

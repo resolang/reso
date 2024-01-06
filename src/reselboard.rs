@@ -15,7 +15,6 @@
 //! 
 //! ```
 
-
 /*
 TODOs:
 - Consider using Grid<Resel> instead of Vec<Vec<Resel>>
@@ -70,7 +69,7 @@ fn vecvecresel_to_reselboard(board: Vec<Vec<Resel>>) -> ReselBoard {
   }
 }
 
-/// Helper function to load images
+/// Helper function to load images from &str
 pub fn load_image_from_filename(filename: &str) -> Option<DynamicImage> {
   match image::open(filename) {
     Ok(img) => Some(img),
@@ -78,13 +77,13 @@ pub fn load_image_from_filename(filename: &str) -> Option<DynamicImage> {
   }
 }
 
+/// Helper function to load images from String
 pub fn load_image_from_filename_string(filename: String) -> Option<DynamicImage> {
   match image::open(filename) {
     Ok(img) => Some(img),
     Err(_)  => None
   }
 }
-
 
 /// Instantiate Vec<Vec<Resel>> from &DynamicImage
 pub fn image_to_vecvecresel(img: &DynamicImage) -> Vec<Vec<Resel>> {
@@ -147,7 +146,6 @@ impl ReselBoard {
   }
 
 }
-
 
 /// Returns (x+dx % width, y+dy%height), plus all the edge cases/conversions
 /// If `wraps`, always returns a value.

@@ -10,12 +10,26 @@ Reso is a visual circuit design language, meant to let anybody who can draw pixe
 
 # Installation and usage
 
+Reso is on [crates.io](https://crates.io/crates/reso) and can be installed with `cargo`:
+
 ```sh
-# Install Reso for the first time!
+# Compile Reso from source
 cargo install reso
 
 # Run 16 simulation steps on `reso_logo.png`, outputting to `out_xx.png`.
 reso -input reso_logo.png -output out_ -numiter 16 -verbose
+```
+
+Alternatively, you can clone Reso [from GitHub](https://github.com/resolang/reso) or [from GitLab](https://gitlab.com/resolang/reso/):
+
+
+```sh
+# Compile Reso from source
+git clone git@github.com:resolang/reso.git
+cd reso
+
+# Run 16 simulation steps on `reso_logo.png`, outputting to `out_xx.png`.
+cargo run --release -- -input reso_logo.png -output out_ -numiter 16 -verbose
 ```
 
 # Ten-color palette

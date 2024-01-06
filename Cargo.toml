@@ -1,11 +1,11 @@
 [package]
 name          = "reso"
-version       = "0.0.3"
+version       = "0.0.4"
 author        = ["Lynn Pepin <reso@lynndotpy.xyz>"]
 edition       = "2021"
 license-file  = "LICENSE"
 description   = "Reso: A visual pixel-art logic-circuit design language"
-repository    = "https://github.com/lynnpepin/reso-rust"
+repository    = "https://github.com/resolang/reso"
 keywords      = ["utility", "mathematics", "simulation", "circuit"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -13,3 +13,11 @@ keywords      = ["utility", "mathematics", "simulation", "circuit"]
 [dependencies]
 clap = { version = "4.4.11", features = ["derive"] }
 image = "0.24.5"
+
+# Enable a small amount of optimization in debug mode
+[profile.dev]
+opt-level = 1
+
+# Enable high optimizations for dependencies, but not for our code:
+[profile.dev.package."*"]
+opt-level = 3

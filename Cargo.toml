@@ -1,12 +1,18 @@
 [package]
 name          = "reso"
-version       = "0.0.4"
-author        = ["Lynn Pepin <reso@lynndotpy.xyz>"]
+version       = "0.0.5"
+authors       = ["Lynn Pepin <reso@lynndotpy.xyz>"]
 edition       = "2021"
 license-file  = "LICENSE"
 description   = "Reso: A visual pixel-art logic-circuit design language"
 repository    = "https://github.com/resolang/reso"
 keywords      = ["utility", "mathematics", "simulation", "circuit"]
+
+[package.metadata.wix]
+upgrade-guid = "069EAA17-A237-4E8E-A39D-BAF1BB4E6733"
+path-guid = "F1A4C02A-BD92-4450-B1B4-FAA01D8B0648"
+license = false
+eula = false
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -21,3 +27,21 @@ opt-level = 1
 # Enable high optimizations for dependencies, but not for our code:
 [profile.dev.package."*"]
 opt-level = 3
+
+# The profile that 'cargo dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"
+
+# Config for 'cargo dist'
+[workspace.metadata.dist]
+# The preferred cargo-dist version to use in CI (Cargo.toml SemVer syntax)
+cargo-dist-version = "0.8.0"
+# CI backends to support
+ci = ["github"]
+# The installers to generate for each app
+installers = ["shell", "msi"]
+# Target platforms to build apps for (Rust target-triple syntax)
+targets = ["aarch64-apple-darwin", "x86_64-apple-darwin", "x86_64-unknown-linux-gnu", "x86_64-pc-windows-msvc"]
+# Publish jobs to run in CI
+pr-run-mode = "plan"

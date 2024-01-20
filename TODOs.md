@@ -1,8 +1,14 @@
 Publishing:
-- resolang.dev project page
+- resolang.dev
+  - custom theme
+  - logo in title
+  - custom favicon
+  - new logo
 - Documentation
-- Move off personal GitHub
-- Example circuits
+  - markdownbook
+  - Getting started
+  - Example circuits
+  - Component library spritesheet
 
 Features and implementation:
 - Run code through a linter

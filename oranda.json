@@ -1,0 +1,15 @@
+{
+  "styles": {
+    "theme": "axolight"
+  },
+  "components": {
+    "artifacts": {
+      "package_managers": {
+        "preferred": {
+          "cargo (source)": "cargo install reso"
+        }
+      }
+    }
+  }
+}
+

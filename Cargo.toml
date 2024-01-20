@@ -1,6 +1,6 @@
 [package]
 name          = "reso"
-version       = "0.0.6"
+version       = "0.0.7"
 authors       = ["Lynn Pepin <reso@lynndotpy.xyz>"]
 edition       = "2021"
 license-file  = "LICENSE"

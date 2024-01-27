@@ -6,7 +6,7 @@
     "artifacts": {
       "package_managers": {
         "preferred": {
-          "cargo (source)": "cargo install reso"
+          "cargo": "cargo install reso"
         }
       }
     }

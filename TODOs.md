@@ -9,6 +9,9 @@ Publishing:
   - Getting started
   - Example circuits
   - Component library spritesheet
+- Re-arrange repo
+  - `oranda` site is separate
+  
 
 Features and implementation:
 - Run code through a linter
@@ -29,4 +32,4 @@ Tooling:
 
 New element types:
 - GPIO wire,
-- Analog wire (Cyan range, 256 values)
+- Bus (Cyan range, 256 values)

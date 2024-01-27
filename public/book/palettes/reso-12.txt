@@ -1,0 +1,17 @@
+;paint.net Palette File
+;Downloaded from Lospec.com/palette-list
+;Palette Name: RESO-12
+;Description: Bisecting the RGB cube yields the six tertiary hues of RGB. We select two shades from five of these hues, plus black and white. This yields twelve colors which can be arranged in particular patterns to be interpreted as a circuit by the Reso compiler. In doing so, the piece comes to life, blinking its state for any to see. This language is Turing complete. Beyond these twelve, all other colors are free, allowing one to embed a Reso circuit into pixel-art of any palette. (Reso is FOSS and is in the 0.0.x release, with more details at https://resolang.dev/)
+;Colors: 12
+FF804000
+FFff8000
+FF004080
+FF0080ff
+FF408000
+FF80ff00
+FF008040
+FF00ff80
+FF400080
+FF8000ff
+FFffffff
+FF000000

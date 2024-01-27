@@ -1,0 +1,16 @@
+GIMP Palette
+#Palette Name: RESO-12
+#Description: Bisecting the RGB cube yields the six tertiary hues of RGB. We select two shades from five of these hues, plus black and white. This yields twelve colors which can be arranged in particular patterns to be interpreted as a circuit by the Reso compiler. In doing so, the piece comes to life, blinking its state for any to see. This language is Turing complete. Beyond these twelve, all other colors are free, allowing one to embed a Reso circuit into pixel-art of any palette. (Reso is FOSS and is in the 0.0.x release, with more details at https://resolang.dev/)
+#Colors: 12
+128	64	0	804000
+255	128	0	ff8000
+0	64	128	004080
+0	128	255	0080ff
+64	128	0	408000
+128	255	0	80ff00
+0	128	64	008040
+0	255	128	00ff80
+64	0	128	400080
+128	0	255	8000ff
+255	255	255	ffffff
+0	0	0	000000

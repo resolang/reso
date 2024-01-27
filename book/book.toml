@@ -1,0 +1,6 @@
+[book]
+authors = ["lynn pepin"]
+language = "en"
+multilingual = false
+src = "src"
+title = "The Reso book"

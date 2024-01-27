@@ -1,0 +1,256 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js oranda-light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Palette - The Reso book</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+        <link rel="stylesheet" href="oranda-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "oranda-light" : "oranda-light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('orandamdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('orandamdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('orandamdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('oranda-light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="palette.html" class="active"><strong aria-hidden="true">2.</strong> Palette</a></li><li class="chapter-item expanded "><a href="trivia.html"><strong aria-hidden="true">3.</strong> Trivia and history</a></li><li class="chapter-item expanded "><a href="seealso.html"><strong aria-hidden="true">4.</strong> See also</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="oranda-light">Axo Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="oranda-dark">Axo Dark</button></li>
+
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">The Reso book</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="palette"><a class="header" href="#palette">Palette</a></h1>
+<h2 id="twelve-color-palette"><a class="header" href="#twelve-color-palette">Twelve-color palette</a></h2>
+<p>There are ten semantically relevant colors which get compiled, the other 16777206 colors are ignored. Black and white are reserved to <em>never</em> have semantic meaning. Pixels with these colors define regions in the logic graph. </p>
+<p><img src="./palettes/reso-12-32x.png" alt="./palettes/reso-12-32x.png" /></p>
+<div class="table-wrapper"><table><thead><tr><th>Color</th><th>Meaning</th><th>Hex code</th><th>RGB</th><th>ASCII</th></tr></thead><tbody>
+<tr><td>Dark  orange</td><td>Orange wire (off)</td><td><code>#804000</code></td><td><code>(128,  64,   0)</code></td><td><code>o</code></td></tr>
+<tr><td>Bright orange</td><td>Orange wire (on)</td><td><code>#ff8000</code></td><td><code>(255, 128,   0)</code></td><td><code>O</code></td></tr>
+<tr><td>Dark sapphire</td><td>Sapphire wire (off)</td><td><code>#004080</code></td><td><code>(  0,  64, 128)</code></td><td><code>s</code></td></tr>
+<tr><td>Bright sapphire</td><td>Sapphire wire (on)</td><td><code>#0080ff</code></td><td><code>(  0, 128, 255)</code></td><td><code>S</code></td></tr>
+<tr><td>Dark lime</td><td>Lime wire (off)</td><td><code>#408000</code></td><td><code>(64,  128,   0)</code></td><td><code>l</code></td></tr>
+<tr><td>Bright lime</td><td>Lime wire (on)</td><td><code>#80ff00</code></td><td><code>(128, 255,   0)</code></td><td><code>L</code></td></tr>
+<tr><td>Dark teal</td><td>AND logic node</td><td><code>#008040</code></td><td><code>(  0, 128,  64)</code></td><td><code>&amp;</code></td></tr>
+<tr><td>Bright teal</td><td>XOR logic node</td><td><code>#00ff80</code></td><td><code>(  0, 255, 128)</code></td><td><code>^</code></td></tr>
+<tr><td>Dark purple</td><td>Input (wire to node)</td><td><code>#400080</code></td><td><code>( 64,   0, 128)</code></td><td><code>+</code></td></tr>
+<tr><td>Bright purple</td><td>Output (node to wire)</td><td><code>#8000ff</code></td><td><code>(128,   0, 255)</code></td><td><code>=</code></td></tr>
+<tr><td>White</td><td>Comment/whitespace</td><td><code>#ffffff</code></td><td><code>(255, 255, 255)</code></td><td><code> </code></td></tr>
+<tr><td>Black</td><td>Comment/whitespace</td><td><code>#000000</code></td><td><code>(  0,   0,   0)</code></td><td><code> </code></td></tr>
+</tbody></table>
+</div>
+<p>For backwards compatibility with new functionality, we reserve a total of 48 colors. (This is by convention and is not enforced by the Reso simulator.)</p>
+<h2 id="reserved-48-color-palette"><a class="header" href="#reserved-48-color-palette">Reserved 48-color palette</a></h2>
+<p>The ten colors above (other than black and white) are semantically relevant, which means all the other valid three-byte RGB values are not.</p>
+<p>New features will use new colors. Reso is at <code>0.0.x</code>, so no promises, but we'll try to stick within these 48 values for any new features:</p>
+<div class="table-wrapper"><table><thead><tr><th>Hue</th><th>Saturated (1)</th><th>Dark (2)</th><th>Light (3)</th><th>Unsaturated (4)</th></tr></thead><tbody>
+<tr><td><strong>Red (R)</strong></td><td><code>#ff0000</code></td><td><code>#800000</code></td><td><code>#ff8080</code></td><td><code>#804040</code></td></tr>
+<tr><td><strong>Yellow (Y)</strong></td><td><code>#ffff00</code></td><td><code>#808000</code></td><td><code>#ffff80</code></td><td><code>#808040</code></td></tr>
+<tr><td><strong>Green (G)</strong></td><td><code>#00ff00</code></td><td><code>#008000</code></td><td><code>#80ff80</code></td><td><code>#408040</code></td></tr>
+<tr><td><strong>Cyan (C)</strong></td><td><code>#00ffff</code></td><td><code>#008080</code></td><td><code>#80ffff</code></td><td><code>#408080</code></td></tr>
+<tr><td><strong>Blue (B)</strong></td><td><code>#0000ff</code></td><td><code>#000080</code></td><td><code>#8080ff</code></td><td><code>#404080</code></td></tr>
+<tr><td><strong>Magenta (M)</strong></td><td><code>#ff00ff</code></td><td><code>#800080</code></td><td><code>#ff80ff</code></td><td><code>#804080</code></td></tr>
+<tr><td><strong>Orange (O)</strong></td><td><code>#ff8000</code></td><td><code>#804000</code></td><td><code>#ffc080</code></td><td><code>#806040</code></td></tr>
+<tr><td><strong>Lime (L)</strong></td><td><code>#80ff00</code></td><td><code>#408000</code></td><td><code>#c0ff80</code></td><td><code>#608040</code></td></tr>
+<tr><td><strong>Teal (T)</strong></td><td><code>#00ff80</code></td><td><code>#008040</code></td><td><code>#80ffc0</code></td><td><code>#408060</code></td></tr>
+<tr><td><strong>Sapphire (S)</strong></td><td><code>#0080ff</code></td><td><code>#004080</code></td><td><code>#80c0ff</code></td><td><code>#406080</code></td></tr>
+<tr><td><strong>Purple (P)</strong></td><td><code>#8000ff</code></td><td><code>#400080</code></td><td><code>#c080ff</code></td><td><code>#604080</code></td></tr>
+<tr><td><strong>Violet (V)</strong></td><td><code>#ff0080</code></td><td><code>#800040</code></td><td><code>#ff80c0</code></td><td><code>#804060</code></td></tr>
+</tbody></table>
+</div>
+<h2 id="palette-downloads"><a class="header" href="#palette-downloads">Palette downloads</a></h2>
+<p><img src="./palettes/reso-12-32x.png" alt="./palettes/reso-12-32x.png" /></p>
+<p>Downloads mirrored from <a href="https://lospec.com/palette-list/reso-12">RESO-12 at lospec.com</a>.</p>
+<ul>
+<li><a href="./palettes/reso-12-1x.png">.png (1x pixels),</a></li>
+<li><a href="./palettes/reso-12-8x.png">.png (8x pixels),</a></li>
+<li><a href="./palettes/reso-12-32x.png">.png (32x pixels),</a></li>
+<li><a href="./palettes/reso-12.ase">.ase (Photoshop)</a></li>
+<li><a href="./palettes/reso-12.">.gpl (GIMP)</a></li>
+<li><a href="./palettes/reso-12.">.txt (Paint.NET)</a></li>
+<li><a href="./palettes/reso-12.">.hex (line-separated list of hex)</a></li>
+</ul>
+<p>Also available in raw hex, if copy-and-paste is more your thing:</p>
+<pre><code class="language-palette">804000,ff8000,004080,0080ff,408000,80ff00,008040,00ff80,400080,8000ff,ffffff,000000
+</code></pre>
+<p><a href="https://github.com/resolang/reso/issues">Submit an issue</a> if there's a convenient palette format you'd like to see. The RESO-12 palette is also available </p>
+<h2 id="alternative-palettes"><a class="header" href="#alternative-palettes">Alternative palettes</a></h2>
+<p>Future versions of Reso will have support for 100% ASCII-based workflows, and for palette mappings, allowing you to execute Reso circuits over any language of your choosing.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="introduction.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="trivia.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="introduction.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="trivia.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

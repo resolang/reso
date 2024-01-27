@@ -1,5 +1,9 @@
 # Palette
 
+> ![./palettes/reso-12-32x.png](./palettes/reso-12-32x.png)
+> 
+> *The 12-color default Reso palette*
+
 
 ## Twelve-color palette
 
@@ -50,7 +54,8 @@ New features will use new colors. Reso is at `0.0.x`, so no promises, but we'll 
 
 ## Palette downloads
 
-![./palettes/reso-12-32x.png](./palettes/reso-12-32x.png)
+Grab the palette in a convenient format!
+
 
 Downloads mirrored from [RESO-12 at lospec.com](https://lospec.com/palette-list/reso-12).
 
